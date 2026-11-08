@@ -1,4 +1,3 @@
-import { Code2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
@@ -22,9 +21,14 @@ export function Brand({
         className
       )}
     >
-      <span className="flex size-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-        <Code2 aria-hidden="true" className="size-4" />
-      </span>
+      <img
+        src="/codesense.png"
+        alt=""
+        aria-hidden="true"
+        width={32}
+        height={32}
+        className="size-8 shrink-0"
+      />
       {showWordmark ? (
         <span className="text-base font-semibold tracking-tight">
           CodeSense
