@@ -1,9 +1,13 @@
 # CodeSense
 
+<p align="left" style="display: flex; align-items: center; gap: 12px;">
+  <img src="./apps/web/public/codesense.png" height="100" alt="CodeSense logo" />
+</p>
+
 Developer-focused code intelligence platform. Connect a repository, queue scans, and
 track their status from a single dashboard.
 
-This repository is a **pnpm workspace + Turborepo** monorepo.
+This repository is a pnpm workspace + Turborepo monorepo.
 
 ## Workspace layout
 
