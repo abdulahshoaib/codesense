@@ -64,7 +64,7 @@ export function AppearanceSection(): React.ReactElement {
                   aria-pressed={isSelected}
                   onClick={() => setPreference(option.value)}
                   className={cn(
-                    "flex flex-col gap-2 rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "flex flex-col gap-2 rounded-none border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isSelected
                       ? "border-primary bg-accent text-accent-foreground"
                       : "border-border hover:bg-muted"

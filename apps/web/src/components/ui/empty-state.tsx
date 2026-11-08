@@ -26,7 +26,7 @@ export function EmptyState({
         className
       )}
     >
-      <span className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+      <span className="flex size-11 items-center justify-center rounded-none bg-muted text-muted-foreground">
         <Icon aria-hidden="true" className="size-5" />
       </span>
       <div className="flex flex-col gap-1">
