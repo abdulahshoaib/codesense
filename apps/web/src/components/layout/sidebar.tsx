@@ -1,14 +1,11 @@
-import { LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 import { Brand } from "@/components/layout/brand";
 import { primaryNavItems } from "@/components/navigation/nav-config";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
-import { useLogout } from "@/features/auth/hooks/use-logout";
 import { cn } from "@/lib/utils";
-import { useAuthStore } from "@/stores/auth.store";
 import { useUiStore } from "@/stores/ui.store";
 
 interface SidebarNavLinkProps {
@@ -32,7 +29,7 @@ function SidebarNavLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          "group relative flex items-center gap-3 rounded-md py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "group relative flex items-center gap-3 rounded-none py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           collapsed ? "justify-center px-2" : "px-3",
           isActive
             ? "bg-accent text-accent-foreground"
@@ -45,7 +42,7 @@ function SidebarNavLink({
           {isActive ? (
             <span
               aria-hidden="true"
-              className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-primary"
+              className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-none bg-primary"
             />
           ) : null}
           <Icon className="size-4 shrink-0" />
@@ -79,8 +76,6 @@ function SidebarContent({
   onNavigate,
   onClose
 }: SidebarContentProps): React.ReactElement {
-  const user = useAuthStore((state) => state.user);
-  const logout = useLogout();
   const toggleCollapsed = useUiStore((state) => state.toggleSidebarCollapsed);
 
   return (
@@ -102,32 +97,8 @@ function SidebarContent({
           >
             <X aria-hidden="true" />
           </Button>
-        ) : collapsed ? null : (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Collapse sidebar"
-            onClick={toggleCollapsed}
-            className="hidden size-8 lg:inline-flex"
-          >
-            <PanelLeftClose aria-hidden="true" />
-          </Button>
-        )}
+        ) : null}
       </div>
-
-      {collapsed ? (
-        <div className="hidden justify-center px-2 py-2 lg:flex">
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Expand sidebar"
-            onClick={toggleCollapsed}
-            className="size-8"
-          >
-            <PanelLeftOpen aria-hidden="true" />
-          </Button>
-        </div>
-      ) : null}
 
       <nav aria-label="Primary" className="flex flex-1 flex-col gap-1 p-2">
         {primaryNavItems.map((item) => (
@@ -143,36 +114,22 @@ function SidebarContent({
       </nav>
 
       <div className="border-t border-border p-2">
-        <div
-          className={cn(
-            "flex items-center gap-3 rounded-md px-1.5 py-1.5",
-            collapsed && "justify-center px-0"
-          )}
-        >
-          <Avatar name={user?.name ?? "Account"} />
-          {collapsed ? null : (
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">
-                {user?.name ?? "Account"}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">
-                {user?.email ?? ""}
-              </p>
-            </div>
-          )}
-        </div>
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
-          onClick={logout}
-          aria-label="Log out"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          onClick={toggleCollapsed}
           className={cn(
-            "mt-1 text-muted-foreground hover:text-foreground",
+            "text-muted-foreground hover:text-foreground",
             collapsed ? "w-full" : "w-full justify-start gap-3 px-3"
           )}
         >
-          <LogOut aria-hidden="true" />
-          {collapsed ? null : "Log out"}
+          {collapsed ? (
+            <PanelLeftOpen aria-hidden="true" />
+          ) : (
+            <PanelLeftClose aria-hidden="true" />
+          )}
+          {collapsed ? null : "Collapse"}
         </Button>
       </div>
     </>
