@@ -17,7 +17,7 @@ export function UserMenu(): React.ReactElement {
     <Dropdown
       align="end"
       triggerLabel="Open user menu"
-      triggerClassName="items-center gap-2 rounded-md p-0.5 pr-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      triggerClassName="items-center gap-2 rounded-none p-0.5 pr-2 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       trigger={
         <>
           <Avatar name={name} />

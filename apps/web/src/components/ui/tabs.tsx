@@ -63,7 +63,7 @@ export function Tabs({
       aria-orientation="horizontal"
       onKeyDown={handleKeyDown}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 p-1",
+        "inline-flex items-center gap-1 rounded-none border border-border bg-muted/40 p-1",
         className
       )}
     >
@@ -79,7 +79,7 @@ export function Tabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(item.value)}
             className={cn(
-              "rounded-sm px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "rounded-none px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               selected
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
