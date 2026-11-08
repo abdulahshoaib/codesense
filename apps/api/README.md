@@ -77,6 +77,7 @@ Base path for the versioned API is `/api/v1`.
 | POST   | `/api/v1/auth/login`             | no   | Exchange credentials for a JWT + public user               |
 | GET    | `/api/v1/auth/me`                | yes  | Current authenticated user                                 |
 | GET    | `/api/v1/users/me`               | yes  | Current user profile                                       |
+| PATCH  | `/api/v1/users/me`               | yes  | Update user profile                                        |
 | POST   | `/api/v1/repositories`           | yes  | Register a repository                                      |
 | GET    | `/api/v1/repositories`           | yes  | List the caller's repositories                             |
 | GET    | `/api/v1/repositories/:id`       | yes  | Get one owned repository                                   |
