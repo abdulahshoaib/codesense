@@ -29,8 +29,8 @@ function SidebarNavLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          "group relative flex items-center gap-3 rounded-none py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          collapsed ? "justify-center px-2" : "px-3",
+          "group relative flex w-full items-center gap-3 rounded-none px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          collapsed && "justify-center",
           isActive
             ? "bg-accent text-accent-foreground"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -57,7 +57,7 @@ function SidebarNavLink({
   }
 
   return (
-    <Tooltip content={label} side="bottom">
+    <Tooltip content={label} side="bottom" className="w-full">
       {link}
     </Tooltip>
   );
@@ -82,7 +82,7 @@ function SidebarContent({
     <>
       <div
         className={cn(
-          "flex h-14 items-center border-b border-border px-3",
+          "flex h-14 shrink-0 items-center border-b border-border px-3",
           collapsed ? "justify-center" : "justify-between"
         )}
       >
@@ -100,7 +100,7 @@ function SidebarContent({
         ) : null}
       </div>
 
-      <nav aria-label="Primary" className="flex flex-1 flex-col gap-1 p-2">
+      <nav aria-label="Primary" className="flex flex-1 flex-col gap-1 py-2">
         {primaryNavItems.map((item) => (
           <SidebarNavLink
             key={item.to}
@@ -113,15 +113,15 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="border-t border-border p-2">
+      <div className="shrink-0 border-t border-border py-2">
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={toggleCollapsed}
           className={cn(
-            "text-muted-foreground hover:text-foreground",
-            collapsed ? "w-full" : "w-full justify-start gap-3 px-3"
+            "w-full text-muted-foreground hover:text-foreground",
+            collapsed ? "justify-center" : "justify-start gap-3"
           )}
         >
           {collapsed ? (
@@ -145,7 +145,7 @@ export function Sidebar(): React.ReactElement {
     <>
       <aside
         className={cn(
-          "sticky top-0 hidden h-svh shrink-0 flex-col border-r border-border bg-card/40 transition-[width] duration-200 lg:flex",
+          "hidden h-full shrink-0 flex-col border-r border-border bg-card/40 transition-[width] duration-200 lg:flex",
           collapsed ? "w-16" : "w-60"
         )}
       >
@@ -159,7 +159,7 @@ export function Sidebar(): React.ReactElement {
             aria-hidden="true"
             onClick={closeMobileNav}
           />
-          <aside className="relative z-10 flex h-full w-64 flex-col border-r border-border bg-card">
+          <aside className="relative z-10 flex h-full w-60 flex-col border-r border-border bg-card">
             <SidebarContent
               collapsed={false}
               showCloseButton
