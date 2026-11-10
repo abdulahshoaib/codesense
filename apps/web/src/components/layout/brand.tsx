@@ -27,10 +27,10 @@ export function Brand({
         aria-hidden="true"
         width={32}
         height={32}
-        className="size-8 shrink-0"
+        className="size-7 shrink-0"
       />
       {showWordmark ? (
-        <span className="text-base font-semibold tracking-tight">
+        <span className="text-[0.9375rem] font-semibold tracking-tight">
           CodeSense
         </span>
       ) : null}

@@ -19,11 +19,11 @@ export function AuthShell({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex justify-center">
+        <div className="mb-5 flex justify-center">
           <Brand to="/login" />
         </div>
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="mb-6 flex flex-col gap-1">
+        <div className="rounded-none border border-border bg-card p-5 shadow-xs">
+          <div className="mb-5 flex flex-col gap-1">
             <h1 className="text-lg font-semibold tracking-tight">{title}</h1>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </div>

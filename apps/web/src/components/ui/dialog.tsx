@@ -1,10 +1,5 @@
 import { X } from "lucide-react";
-import {
-  useEffect,
-  useId,
-  useRef,
-  type ReactNode
-} from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -81,13 +76,13 @@ export function Dialog({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full max-w-md rounded-lg border border-border bg-card p-5 text-card-foreground shadow-lg focus:outline-none",
+          "relative z-10 w-full max-w-md rounded-none border border-border bg-card p-4 text-card-foreground shadow-lg focus:outline-none",
           className
         )}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <h2 id={titleId} className="text-base font-semibold">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-0.5">
+            <h2 id={titleId} className="text-sm font-semibold">
               {title}
             </h2>
             {description ? (
@@ -101,15 +96,15 @@ export function Dialog({
             size="icon"
             aria-label="Close dialog"
             onClick={onClose}
-            className="-mr-2 -mt-2 size-8"
+            className="-mr-1.5 -mt-1.5 size-7"
           >
             <X aria-hidden="true" />
           </Button>
         </div>
 
-        {children ? <div className="mt-4">{children}</div> : null}
+        {children ? <div className="mt-3">{children}</div> : null}
         {footer ? (
-          <div className="mt-6 flex justify-end gap-2">{footer}</div>
+          <div className="mt-4 flex justify-end gap-2">{footer}</div>
         ) : null}
       </div>
     </div>,

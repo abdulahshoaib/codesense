@@ -14,20 +14,20 @@ export function TopBar(): React.ReactElement {
   const meta = getRouteMeta(location.pathname);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:px-4">
       <Button
         variant="ghost"
         size="icon"
         aria-label="Open navigation"
         onClick={openMobileNav}
-        className="size-9 lg:hidden"
+        className="size-8 lg:hidden"
       >
         <Menu aria-hidden="true" />
       </Button>
 
       <Breadcrumbs items={meta.breadcrumbs} />
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-0.5">
         <ThemeToggle />
         <UserMenu />
       </div>

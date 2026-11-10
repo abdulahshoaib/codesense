@@ -57,23 +57,23 @@ export function SummaryCards({
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => {
         const Icon = item.icon;
 
         return (
           <Card key={item.label}>
-            <CardContent className="flex items-start justify-between gap-4 pt-5">
+            <CardContent className="flex items-start justify-between gap-3 pt-4">
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-muted-foreground">
                   {item.label}
                 </p>
-                <p className="text-2xl font-semibold tracking-tight">
+                <p className="text-xl font-semibold tracking-tight">
                   {item.value}
                 </p>
                 <p className="text-xs text-muted-foreground">{item.hint}</p>
               </div>
-              <span className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
+              <span className="flex size-8 items-center justify-center rounded-none bg-muted text-muted-foreground">
                 <Icon aria-hidden="true" className="size-4" />
               </span>
             </CardContent>

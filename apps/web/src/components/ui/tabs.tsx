@@ -79,7 +79,7 @@ export function Tabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(item.value)}
             className={cn(
-              "rounded-none px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "rounded-none px-2.5 py-1 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               selected
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"

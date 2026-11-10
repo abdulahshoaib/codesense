@@ -55,7 +55,7 @@ function RepositoryDetails({
   repository: RepositoryDTO;
 }): React.ReactElement {
   return (
-    <dl className="grid gap-4 sm:grid-cols-2">
+    <dl className="grid gap-3 sm:grid-cols-2">
       <DetailItem label="Repository URL">
         <a
           href={repository.url}
@@ -143,7 +143,7 @@ export function RepositoryDetailPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title={repository.name}
         badge={
@@ -186,7 +186,7 @@ export function RepositoryDetailPage(): React.ReactElement {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-0.5">
             <CardTitle>Scan history</CardTitle>
             <CardDescription>
               Scan records created for this repository.
@@ -197,7 +197,7 @@ export function RepositoryDetailPage(): React.ReactElement {
             Start scan
           </Button>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+        <CardContent className="flex flex-col gap-3">
           <Alert variant="info" title="Scan execution not implemented">
             The backend currently creates and stores scan records only. Progress,
             analysis results, and scanning itself are not available yet.

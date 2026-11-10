@@ -29,14 +29,14 @@ export function ConnectRepositoryPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="Connect repository"
         description="Add repository metadata to CodeSense. GitHub OAuth, cloning, and scanning are not implemented yet."
       />
 
       <Card className="max-w-2xl">
-        <CardContent className="pt-5">
+        <CardContent className="pt-4">
           <RepositoryForm
             submitLabel="Connect repository"
             isSubmitting={createRepository.isPending}

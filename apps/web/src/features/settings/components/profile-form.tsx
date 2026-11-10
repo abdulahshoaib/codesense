@@ -44,7 +44,7 @@ export function ProfileForm({ user }: ProfileFormProps): React.ReactElement {
     : null;
 
   return (
-    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-3">
       {apiError ? (
         <Alert variant="destructive" title="Unable to update profile">
           {apiError}
@@ -57,7 +57,7 @@ export function ProfileForm({ user }: ProfileFormProps): React.ReactElement {
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField
           id="profile-name"
           label="Display name"

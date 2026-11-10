@@ -38,7 +38,7 @@ export function RecentScans({
             {scans.map(({ scan, repository }) => (
               <li
                 key={scan.id}
-                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
               >
                 <div className="flex min-w-0 flex-col">
                   <Link

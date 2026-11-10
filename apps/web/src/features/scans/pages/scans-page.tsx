@@ -27,7 +27,7 @@ export function ScansPage(): React.ReactElement {
   const canStartScan = repositories.length > 0;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="Scans"
         description="Scan records across all connected repositories."
@@ -48,7 +48,7 @@ export function ScansPage(): React.ReactElement {
       </Alert>
 
       <Card>
-        <CardContent className="pt-5">
+        <CardContent className="pt-4">
           {isLoading ? (
             <TableSkeleton columns={6} />
           ) : isError ? (

@@ -12,7 +12,7 @@ export function Table({
   ...props
 }: TableHTMLAttributes<HTMLTableElement>): React.ReactElement {
   return (
-    <div className="w-full overflow-x-auto rounded-lg border border-border">
+    <div className="w-full overflow-x-auto rounded-none border border-border">
       <table
         className={cn("w-full caption-bottom border-collapse text-sm", className)}
         {...props}
@@ -60,7 +60,7 @@ export function TableHead({
     <th
       scope="col"
       className={cn(
-        "h-10 whitespace-nowrap px-4 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground",
+        "h-8 whitespace-nowrap px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground",
         className
       )}
       {...props}
@@ -74,7 +74,7 @@ export function TableCell({
 }: TdHTMLAttributes<HTMLTableCellElement>): React.ReactElement {
   return (
     <td
-      className={cn("px-4 py-3 align-middle text-foreground", className)}
+      className={cn("px-3 py-2 align-middle text-foreground", className)}
       {...props}
     />
   );
