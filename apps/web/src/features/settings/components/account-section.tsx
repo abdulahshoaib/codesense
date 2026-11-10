@@ -19,9 +19,9 @@ export function AccountSection(): React.ReactElement {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Account</CardTitle>
+        <CardTitle>Session</CardTitle>
         <CardDescription>
-          Manage your current session.
+          Sign out of CodeSense on this device.
         </CardDescription>
       </CardHeader>
       <CardContent>
