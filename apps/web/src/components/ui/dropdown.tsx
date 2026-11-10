@@ -81,7 +81,7 @@ export function Dropdown({
         <div
           role="menu"
           className={cn(
-            "absolute top-[calc(100%+0.35rem)] z-40 min-w-48 overflow-hidden rounded-none border border-border bg-popover p-1 text-popover-foreground shadow-md",
+            "absolute top-[calc(100%+0.35rem)] z-40 min-w-44 overflow-hidden rounded-none border border-border bg-popover p-1 text-popover-foreground shadow-md",
             align === "end" ? "right-0" : "left-0"
           )}
         >
@@ -95,7 +95,7 @@ export function Dropdown({
                 item.onSelect();
               }}
               className={cn(
-                "flex w-full items-center gap-2 rounded-none px-2.5 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none [&_svg]:size-4 [&_svg]:shrink-0",
+                "flex w-full items-center gap-2 rounded-none px-2 py-1.5 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none [&_svg]:size-4 [&_svg]:shrink-0",
                 item.destructive ? "text-destructive" : "text-foreground"
               )}
             >

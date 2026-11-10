@@ -48,7 +48,7 @@ export function ScanDetailPage(): React.ReactElement {
   const repositoryName = repositoryQuery.data?.name;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title={`Scan ${scan.id.slice(-8)}`}
         badge={<ScanStatusBadge status={scan.status} />}
@@ -72,7 +72,7 @@ export function ScanDetailPage(): React.ReactElement {
           <CardDescription>Recorded scan metadata.</CardDescription>
         </CardHeader>
         <CardContent>
-          <dl className="grid gap-4 sm:grid-cols-2">
+          <dl className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Status
@@ -142,7 +142,7 @@ export function ScanDetailPage(): React.ReactElement {
           </dl>
 
           {scan.error ? (
-            <Alert variant="destructive" title="Error details" className="mt-4">
+            <Alert variant="destructive" title="Error details" className="mt-3">
               {scan.error}
             </Alert>
           ) : null}

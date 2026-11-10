@@ -75,7 +75,7 @@ export function RepositoryTable({
                 <Dropdown
                   align="end"
                   triggerLabel={`Actions for ${repository.name}`}
-                  triggerClassName="size-8 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  triggerClassName="size-7 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   trigger={<MoreHorizontal aria-hidden="true" className="size-4" />}
                   items={[
                     {

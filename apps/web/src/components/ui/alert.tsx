@@ -59,7 +59,7 @@ export function Alert({
     <div
       role="alert"
       className={cn(
-        "flex gap-3 rounded-md border p-3 text-sm",
+        "flex gap-2.5 rounded-none border p-2.5 text-sm",
         config.classes,
         className
       )}

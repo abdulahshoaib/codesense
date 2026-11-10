@@ -29,7 +29,7 @@ function SidebarNavLink({
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          "group relative flex w-full items-center gap-3 rounded-none px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "group relative flex w-full items-center gap-2.5 rounded-none px-2.5 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           collapsed && "justify-center",
           isActive
             ? "bg-accent text-accent-foreground"
@@ -42,7 +42,7 @@ function SidebarNavLink({
           {isActive ? (
             <span
               aria-hidden="true"
-              className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-none bg-primary"
+              className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-none bg-primary"
             />
           ) : null}
           <Icon className="size-4 shrink-0" />
@@ -82,7 +82,7 @@ function SidebarContent({
     <>
       <div
         className={cn(
-          "flex h-14 shrink-0 items-center border-b border-border px-3",
+          "flex h-12 shrink-0 items-center border-b border-border px-3",
           collapsed ? "justify-center" : "justify-between"
         )}
       >
@@ -100,7 +100,7 @@ function SidebarContent({
         ) : null}
       </div>
 
-      <nav aria-label="Primary" className="flex flex-1 flex-col gap-1 py-2">
+      <nav aria-label="Primary" className="flex flex-1 flex-col gap-0.5 px-2 py-1.5">
         {primaryNavItems.map((item) => (
           <SidebarNavLink
             key={item.to}
@@ -113,7 +113,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      <div className="shrink-0 border-t border-border py-2">
+      <div className="shrink-0 border-t border-border px-2 py-1.5">
         <Button
           variant="ghost"
           size={collapsed ? "icon" : "sm"}
@@ -121,7 +121,7 @@ function SidebarContent({
           onClick={toggleCollapsed}
           className={cn(
             "w-full text-muted-foreground hover:text-foreground",
-            collapsed ? "justify-center" : "justify-start gap-3"
+            collapsed ? "justify-center" : "justify-start gap-2.5"
           )}
         >
           {collapsed ? (
@@ -145,8 +145,8 @@ export function Sidebar(): React.ReactElement {
     <>
       <aside
         className={cn(
-          "hidden h-full shrink-0 flex-col border-r border-border bg-card/40 transition-[width] duration-200 lg:flex",
-          collapsed ? "w-16" : "w-60"
+          "hidden h-full shrink-0 flex-col border-r border-border bg-card transition-[width] duration-200 lg:flex",
+          collapsed ? "w-14" : "w-56"
         )}
       >
         <SidebarContent collapsed={collapsed} />
@@ -159,7 +159,7 @@ export function Sidebar(): React.ReactElement {
             aria-hidden="true"
             onClick={closeMobileNav}
           />
-          <aside className="relative z-10 flex h-full w-60 flex-col border-r border-border bg-card">
+          <aside className="relative z-10 flex h-full w-56 flex-col border-r border-border bg-card">
             <SidebarContent
               collapsed={false}
               showCloseButton

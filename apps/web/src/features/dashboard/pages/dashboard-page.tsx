@@ -56,14 +56,14 @@ export function DashboardPage(): React.ReactElement {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <PageHeader
           title="Overview"
           description="A summary of your CodeSense workspace."
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-28" />
+            <Skeleton key={index} className="h-24" />
           ))}
         </div>
         <TableSkeleton columns={4} />
@@ -73,7 +73,7 @@ export function DashboardPage(): React.ReactElement {
 
   if (isError) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         <PageHeader
           title="Overview"
           description="A summary of your CodeSense workspace."
@@ -84,7 +84,7 @@ export function DashboardPage(): React.ReactElement {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title={`Welcome back${user ? `, ${user.name}` : ""}`}
         description="A summary of your CodeSense workspace."
@@ -99,8 +99,8 @@ export function DashboardPage(): React.ReactElement {
       <SummaryCards stats={stats} />
 
       {hasRepositories ? (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="grid gap-5 lg:grid-cols-3">
+          <div className="flex flex-col gap-5 lg:col-span-2">
             <RecentRepositories
               repositories={repositories.slice(0, RECENT_LIMIT)}
               scansByRepository={scansByRepository}

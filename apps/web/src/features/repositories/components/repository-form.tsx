@@ -49,7 +49,7 @@ export function RepositoryForm({
     <form
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-3"
     >
       {apiError ? (
         <Alert variant="destructive" title="Unable to save repository">
@@ -89,7 +89,7 @@ export function RepositoryForm({
         />
       </FormField>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         <FormField
           id="repository-provider"
           label="Provider"

@@ -70,7 +70,7 @@ export function RepositoriesPage(): React.ReactElement {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <PageHeader
         title="Repositories"
         description="Repositories connected to your CodeSense workspace."

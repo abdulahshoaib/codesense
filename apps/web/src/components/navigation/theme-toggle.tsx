@@ -23,7 +23,7 @@ export function ThemeToggle(): React.ReactElement {
     <Dropdown
       align="end"
       triggerLabel="Change theme"
-      triggerClassName="size-9 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      triggerClassName="size-8 items-center justify-center rounded-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       trigger={
         <TriggerIcon aria-hidden="true" className="size-4" data-testid="theme-toggle-icon" />
       }

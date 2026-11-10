@@ -37,7 +37,7 @@ export function ProfileSection(): React.ReactElement {
           Your CodeSense account information.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-3">
         {user ? <ProfileForm user={user} /> : null}
         <ProfileRow label="Member since" value={formatDate(user?.createdAt)} />
       </CardContent>
