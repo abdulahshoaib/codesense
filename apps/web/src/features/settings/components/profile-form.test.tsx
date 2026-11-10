@@ -69,7 +69,8 @@ describe("ProfileForm", () => {
     await testUser.click(screen.getByRole("button", { name: "Save changes" }));
 
     await vi.waitFor(() => {
-      expect(mocks.updateProfile).toHaveBeenCalledWith({
+      expect(mocks.updateProfile).toHaveBeenCalledTimes(1);
+      expect(mocks.updateProfile.mock.calls[0]?.[0]).toEqual({
         name: "Ada Byron",
         email: user.email
       });
