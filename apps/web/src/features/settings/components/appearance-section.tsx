@@ -52,7 +52,7 @@ export function AppearanceSection(): React.ReactElement {
       <CardContent>
         <fieldset>
           <legend className="sr-only">Theme preference</legend>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex gap-1 rounded-none border border-border p-1">
             {themeOptions.map((option) => {
               const Icon = option.icon;
               const isSelected = option.value === preference;
@@ -62,19 +62,17 @@ export function AppearanceSection(): React.ReactElement {
                   key={option.value}
                   type="button"
                   aria-pressed={isSelected}
+                  title={option.description}
                   onClick={() => setPreference(option.value)}
                   className={cn(
-                    "flex flex-col gap-2 rounded-none border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    "flex flex-1 items-center justify-center gap-2 rounded-none px-2 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     isSelected
-                      ? "border-primary bg-accent text-accent-foreground"
-                      : "border-border hover:bg-muted"
+                      ? "bg-accent font-medium text-accent-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <Icon aria-hidden="true" className="size-4" />
-                  <span className="text-sm font-medium">{option.label}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {option.description}
-                  </span>
+                  <Icon aria-hidden="true" className="size-4 shrink-0" />
+                  {option.label}
                 </button>
               );
             })}
