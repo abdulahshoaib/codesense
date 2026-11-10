@@ -1,0 +1,141 @@
+import type { PublicUser } from "@codesense/shared";
+
+import { env } from "../../config/env.js";
+import { encryptSecret } from "../../services/encryption.service.js";
+import {
+  signOAuthState,
+  verifyOAuthState
+} from "../../services/token.service.js";
+import { ApiError } from "../../utils/ApiError.js";
+import { User } from "../users/user.model.js";
+import { toPublicUser } from "../users/user.types.js";
+import type { GithubTokenResponse, GithubUser } from "./github.types.js";
+
+const GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
+const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
+const SCOPES = "read:user user:email";
+
+function assertConfigured(): void {
+  if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) {
+    throw ApiError.internal(
+      "GitHub OAuth is not configured",
+      "GITHUB_OAUTH_NOT_CONFIGURED"
+    );
+  }
+}
+
+export function getAuthorizeUrl(userId: string): { url: string } {
+  assertConfigured();
+
+  const params = new URLSearchParams({
+    client_id: env.GITHUB_CLIENT_ID,
+    redirect_uri: env.GITHUB_REDIRECT_URI,
+    scope: SCOPES,
+    state: signOAuthState(userId)
+  });
+
+  return { url: `${GITHUB_AUTHORIZE_URL}?${params.toString()}` };
+}
+
+async function exchangeCode(code: string): Promise<string> {
+  const response = await fetch(GITHUB_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "User-Agent": "codesense"
+    },
+    body: JSON.stringify({
+      client_id: env.GITHUB_CLIENT_ID,
+      client_secret: env.GITHUB_CLIENT_SECRET,
+      code,
+      redirect_uri: env.GITHUB_REDIRECT_URI
+    })
+  });
+
+  const data = (await response.json()) as GithubTokenResponse;
+
+  if (!response.ok || data.error || !data.access_token) {
+    throw ApiError.badRequest(
+      data.error_description ?? "Failed to exchange GitHub authorization code",
+      "GITHUB_OAUTH_FAILED"
+    );
+  }
+
+  return data.access_token;
+}
+
+async function fetchGithubUser(accessToken: string): Promise<GithubUser> {
+  const response = await fetch(`${env.GITHUB_API_URL}/user`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/vnd.github+json",
+      "User-Agent": "codesense"
+    }
+  });
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub profile",
+      "GITHUB_PROFILE_FAILED"
+    );
+  }
+
+  return (await response.json()) as GithubUser;
+}
+
+export async function completeAuthorization(
+  code: string,
+  state: string
+): Promise<void> {
+  const userId = verifyOAuthState(state);
+  const accessToken = await exchangeCode(code);
+  const githubUser = await fetchGithubUser(accessToken);
+
+  const existing = await User.findOne({
+    "github.id": githubUser.id,
+    _id: { $ne: userId }
+  }).exec();
+
+  if (existing) {
+    throw ApiError.conflict(
+      "This GitHub account is already connected to another CodeSense account",
+      "GITHUB_ACCOUNT_IN_USE"
+    );
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        github: {
+          id: githubUser.id,
+          login: githubUser.login,
+          name: githubUser.name ?? null,
+          avatarUrl: githubUser.avatar_url ?? null,
+          accessToken: encryptSecret(accessToken),
+          connectedAt: new Date()
+        }
+      }
+    },
+    { new: true, runValidators: true }
+  ).exec();
+
+  if (!user) {
+    throw ApiError.notFound("User not found", "USER_NOT_FOUND");
+  }
+}
+
+export async function disconnect(userId: string): Promise<PublicUser> {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $unset: { github: 1 } },
+    { new: true }
+  ).exec();
+
+  if (!user) {
+    throw ApiError.notFound("User not found", "USER_NOT_FOUND");
+  }
+
+  return toPublicUser(user);
+}

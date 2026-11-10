@@ -35,3 +35,32 @@ export function verifyAccessToken(token: string): JwtPayload {
     );
   }
 }
+
+const OAUTH_STATE_EXPIRES_IN = "10m";
+
+export function signOAuthState(userId: string): string {
+  return jwt.sign({ sub: userId }, env.JWT_SECRET, {
+    expiresIn: OAUTH_STATE_EXPIRES_IN
+  });
+}
+
+export function verifyOAuthState(token: string): string {
+  try {
+    const decoded = jwt.verify(token, env.JWT_SECRET);
+
+    if (typeof decoded === "string" || !decoded.sub) {
+      throw ApiError.unauthorized("Invalid OAuth state", "INVALID_OAUTH_STATE");
+    }
+
+    return String(decoded.sub);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw ApiError.unauthorized(
+      "Invalid or expired OAuth state",
+      "INVALID_OAUTH_STATE"
+    );
+  }
+}

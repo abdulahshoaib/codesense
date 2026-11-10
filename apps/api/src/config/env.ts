@@ -16,7 +16,14 @@ export const envSchema = z.object({
   CORS_ORIGIN: z.string().min(1).default("http://localhost:5173"),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
-    .default("info")
+    .default("info"),
+  GITHUB_CLIENT_ID: z.string().default(""),
+  GITHUB_CLIENT_SECRET: z.string().default(""),
+  GITHUB_REDIRECT_URI: z
+    .string()
+    .default("http://localhost:5000/api/v1/auth/github/callback"),
+  GITHUB_API_URL: z.string().default("https://api.github.com"),
+  WEB_APP_URL: z.string().default("http://localhost:5173")
 });
 
 export type Env = z.infer<typeof envSchema>;
