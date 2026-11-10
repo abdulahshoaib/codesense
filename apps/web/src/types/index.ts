@@ -6,6 +6,8 @@ export type {
   AuthResponse,
   CreateRepositoryInput,
   CreateScanInput,
+  GitHubAuthorizeResponse,
+  GitHubConnection,
   LoginInput,
   PublicUser,
   RegisterInput,
