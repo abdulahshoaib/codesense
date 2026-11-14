@@ -10,12 +10,7 @@ export const scanStatusSchema = z.enum([
 ]);
 
 export const createScanSchema = z.object({
-  branch: z.string().trim().min(1, "Branch is required").max(200),
-  commitHash: z
-    .string()
-    .trim()
-    .regex(/^[0-9a-fA-F]{7,40}$/, "Commit hash must be a valid git hash")
-    .optional()
+  branch: z.string().trim().min(1, "Branch is required").max(200)
 });
 
 export const scanIdParamSchema = z.object({
