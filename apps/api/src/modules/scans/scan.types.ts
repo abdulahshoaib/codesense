@@ -1,4 +1,10 @@
-import type { ScanDTO, ScanStatus } from "@codesense/shared";
+import type {
+  DependencySummary,
+  LanguageSummary,
+  ScanDTO,
+  ScanStatus,
+  ScanSummary
+} from "@codesense/shared";
 import type { Types } from "mongoose";
 
 export interface ScanDocument {
@@ -7,17 +13,19 @@ export interface ScanDocument {
   ownerId: Types.ObjectId;
   branch: string;
   commitHash?: string;
+  committedAt?: Date;
   status: ScanStatus;
   startedAt?: Date;
   completedAt?: Date;
   error?: string;
+  summary?: ScanSummary;
+  aiSummary?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateScanData {
   branch: string;
-  commitHash?: string;
 }
 
 export function toScanDTO(scan: ScanDocument): ScanDTO {
@@ -27,6 +35,9 @@ export function toScanDTO(scan: ScanDocument): ScanDTO {
     ownerId: scan.ownerId.toString(),
     branch: scan.branch,
     ...(scan.commitHash !== undefined ? { commitHash: scan.commitHash } : {}),
+    ...(scan.committedAt !== undefined
+      ? { committedAt: scan.committedAt.toISOString() }
+      : {}),
     status: scan.status,
     ...(scan.startedAt !== undefined
       ? { startedAt: scan.startedAt.toISOString() }
@@ -35,6 +46,29 @@ export function toScanDTO(scan: ScanDocument): ScanDTO {
       ? { completedAt: scan.completedAt.toISOString() }
       : {}),
     ...(scan.error !== undefined ? { error: scan.error } : {}),
+    ...(scan.summary !== undefined
+      ? {
+          summary: {
+            files: scan.summary.files,
+            linesOfCode: scan.summary.linesOfCode,
+            languages: scan.summary.languages.map((language: LanguageSummary) => ({
+              name: language.name,
+              files: language.files,
+              lines: language.lines
+            })),
+            dependencies: scan.summary.dependencies.map(
+              (dependency: DependencySummary) => ({
+                ecosystem: dependency.ecosystem,
+                name: dependency.name,
+                ...(dependency.version !== undefined
+                  ? { version: dependency.version }
+                  : {})
+              })
+            )
+          }
+        }
+      : {}),
+    ...(scan.aiSummary !== undefined ? { aiSummary: scan.aiSummary } : {}),
     createdAt: scan.createdAt.toISOString(),
     updatedAt: scan.updatedAt.toISOString()
   };

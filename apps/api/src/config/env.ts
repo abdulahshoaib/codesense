@@ -23,7 +23,10 @@ export const envSchema = z.object({
     .string()
     .default("http://localhost:5000/api/v1/auth/github/callback"),
   GITHUB_API_URL: z.string().default("https://api.github.com"),
-  WEB_APP_URL: z.string().default("http://localhost:5173")
+  WEB_APP_URL: z.string().default("http://localhost:5173"),
+  AI_API_KEY: z.string().default(""),
+  AI_BASE_URL: z.string().default("https://api.openai.com/v1"),
+  AI_MODEL: z.string().default("gpt-4o-mini")
 });
 
 export type Env = z.infer<typeof envSchema>;

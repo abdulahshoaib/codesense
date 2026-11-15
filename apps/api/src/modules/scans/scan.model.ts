@@ -2,6 +2,34 @@ import { model, Schema, type Model } from "mongoose";
 
 import type { ScanDocument } from "./scan.types.js";
 
+const languageSummarySchema = new Schema(
+  {
+    name: { type: String, required: true },
+    files: { type: Number, required: true },
+    lines: { type: Number, required: true }
+  },
+  { _id: false }
+);
+
+const dependencySummarySchema = new Schema(
+  {
+    ecosystem: { type: String, required: true },
+    name: { type: String, required: true },
+    version: { type: String }
+  },
+  { _id: false }
+);
+
+const scanSummarySchema = new Schema(
+  {
+    files: { type: Number, required: true },
+    linesOfCode: { type: Number, required: true },
+    languages: { type: [languageSummarySchema], required: true },
+    dependencies: { type: [dependencySummarySchema], required: true }
+  },
+  { _id: false }
+);
+
 const scanSchema = new Schema<ScanDocument>(
   {
     repositoryId: {
@@ -26,6 +54,9 @@ const scanSchema = new Schema<ScanDocument>(
       type: String,
       trim: true
     },
+    committedAt: {
+      type: Date
+    },
     status: {
       type: String,
       enum: ["queued", "running", "completed", "failed"],
@@ -39,6 +70,12 @@ const scanSchema = new Schema<ScanDocument>(
       type: Date
     },
     error: {
+      type: String
+    },
+    summary: {
+      type: scanSummarySchema
+    },
+    aiSummary: {
       type: String
     }
   },
