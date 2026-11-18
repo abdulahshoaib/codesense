@@ -12,14 +12,7 @@ const create = asyncHandler(async (req: Request, res: Response) => {
     req.body as CreateScanInput
   );
 
-  res
-    .status(201)
-    .json(
-      successResponse(
-        scan,
-        "Scan queued. Scan execution is not implemented yet."
-      )
-    );
+  res.status(201).json(successResponse(scan, "Scan queued"));
 });
 
 const listForRepository = asyncHandler(async (req: Request, res: Response) => {

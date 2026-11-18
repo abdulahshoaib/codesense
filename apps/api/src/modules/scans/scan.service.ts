@@ -1,8 +1,10 @@
 import type { ScanDTO } from "@codesense/shared";
 import { Types } from "mongoose";
 
+import { logger } from "../../config/logger.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { repositoryService } from "../repositories/repository.service.js";
+import { executeScan } from "./scan.executor.js";
 import { Scan } from "./scan.model.js";
 import { toScanDTO, type CreateScanData } from "./scan.types.js";
 
@@ -21,8 +23,12 @@ async function createScan(
     repositoryId: toObjectId(repositoryId),
     ownerId: toObjectId(ownerId),
     branch: data.branch,
-    ...(data.commitHash !== undefined ? { commitHash: data.commitHash } : {}),
     status: "queued"
+  });
+
+  const scanId = scan._id.toString();
+  void executeScan(scanId).catch((error) => {
+    logger.error({ error, scanId }, "Failed to start scan execution");
   });
 
   return toScanDTO(scan);

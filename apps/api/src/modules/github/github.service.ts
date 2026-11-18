@@ -91,7 +91,7 @@ async function fetchGithubUser(accessToken: string): Promise<GithubUser> {
   return (await response.json()) as GithubUser;
 }
 
-async function getGithubAccessToken(userId: string): Promise<string> {
+export async function getGithubAccessToken(userId: string): Promise<string> {
   const user = await User.findById(userId).select("+github.accessToken").exec();
   const accessToken = user?.github?.accessToken;
 
@@ -103,6 +103,18 @@ async function getGithubAccessToken(userId: string): Promise<string> {
   }
 
   return decryptSecret(accessToken);
+}
+
+export function buildGithubCloneUrl(
+  repositoryUrl: string,
+  accessToken: string
+): string {
+  const normalized = repositoryUrl.replace(/\.git$/, "").replace(/\/$/, "");
+  const url = new URL(normalized);
+  url.username = "x-access-token";
+  url.password = accessToken;
+
+  return `${url.toString()}.git`;
 }
 
 export async function listGithubRepositories(
