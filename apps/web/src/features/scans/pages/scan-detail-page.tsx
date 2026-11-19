@@ -5,6 +5,7 @@ import { ErrorState } from "@/components/feedback/error-state";
 import { ScanStatusBadge } from "@/components/feedback/scan-status-badge";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,7 +53,7 @@ export function ScanDetailPage(): React.ReactElement {
       <PageHeader
         title={`Scan ${scan.id.slice(-8)}`}
         badge={<ScanStatusBadge status={scan.status} />}
-        description="Scan record details. Execution and analysis results are not available yet."
+        description="Scan record details and analysis results."
         actions={
           <Button variant="outline" onClick={() => navigate("/scans")}>
             <ArrowLeft aria-hidden="true" />
@@ -60,11 +61,6 @@ export function ScanDetailPage(): React.ReactElement {
           </Button>
         }
       />
-
-      <Alert variant="info" title="Scan execution not implemented">
-        The backend stores the scan record and its status only. No progress,
-        findings, or analysis output can be displayed.
-      </Alert>
 
       <Card>
         <CardHeader>
@@ -117,6 +113,12 @@ export function ScanDetailPage(): React.ReactElement {
             </div>
             <div className="flex flex-col gap-1">
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Committed
+              </dt>
+              <dd className="text-sm">{formatDateTime(scan.committedAt)}</dd>
+            </div>
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Created
               </dt>
               <dd className="text-sm">{formatDateTime(scan.createdAt)}</dd>
@@ -148,6 +150,82 @@ export function ScanDetailPage(): React.ReactElement {
           ) : null}
         </CardContent>
       </Card>
+
+      {scan.summary ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Scan results</CardTitle>
+            <CardDescription>
+              Static analysis of the latest commit on {scan.branch}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-5">
+            <dl className="grid gap-3 sm:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Files
+                </dt>
+                <dd className="text-sm">{scan.summary.files}</dd>
+              </div>
+              <div className="flex flex-col gap-1">
+                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Lines of code
+                </dt>
+                <dd className="text-sm">{scan.summary.linesOfCode}</dd>
+              </div>
+            </dl>
+
+            {scan.summary.languages.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Languages
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {scan.summary.languages.map((language) => (
+                    <Badge key={language.name} variant="outline">
+                      {language.name} · {language.files} files · {language.lines}{" "}
+                      lines
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {scan.summary.dependencies.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Dependencies
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {scan.summary.dependencies.map((dependency, index) => (
+                    <Badge
+                      key={`${dependency.ecosystem}-${dependency.name}-${index}`}
+                      variant="secondary"
+                    >
+                      {dependency.ecosystem}:{dependency.name}
+                      {dependency.version ? `@${dependency.version}` : ""}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {scan.aiSummary ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>AI summary</CardTitle>
+            <CardDescription>Generated codebase overview.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+              {scan.aiSummary}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }

@@ -6,9 +6,11 @@ export type {
   AuthResponse,
   CreateRepositoryInput,
   CreateScanInput,
+  DependencySummary,
   GitHubAuthorizeResponse,
   GitHubConnection,
   GithubRepositoryDTO,
+  LanguageSummary,
   LoginInput,
   PublicUser,
   RegisterInput,
@@ -16,5 +18,6 @@ export type {
   RepositoryProvider,
   ScanDTO,
   ScanStatus,
+  ScanSummary,
   UpdateRepositoryInput
 } from "@codesense/shared";

@@ -6,7 +6,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ErrorState } from "@/components/feedback/error-state";
 import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
-import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -198,11 +197,6 @@ export function RepositoryDetailPage(): React.ReactElement {
           </Button>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <Alert variant="info" title="Scan execution not implemented">
-            The backend currently creates and stores scan records only. Progress,
-            analysis results, and scanning itself are not available yet.
-          </Alert>
-
           {scansQuery.isLoading ? (
             <TableSkeleton columns={5} />
           ) : scansQuery.isError ? (
@@ -214,7 +208,7 @@ export function RepositoryDetailPage(): React.ReactElement {
             <EmptyState
               icon={ScanSearch}
               title="No scans yet"
-              description="Create a scan record to track this repository's analysis queue."
+              description="Queue a scan to analyze this repository's latest commit."
               action={
                 <Button onClick={() => setIsScanOpen(true)}>
                   <Play aria-hidden="true" />

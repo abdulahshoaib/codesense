@@ -43,14 +43,14 @@ export function StartScanDialog({
     formState: { errors }
   } = useForm<ScanFormValues>({
     resolver: zodResolver(scanFormSchema),
-    defaultValues: { branch: defaultBranch ?? "main", commitHash: "" }
+    defaultValues: { branch: defaultBranch ?? "main" }
   });
 
   useEffect(() => {
     if (open) {
       setRepositoryId(fixedRepositoryId ?? repositories[0]?.id ?? "");
       setRepositoryError(null);
-      reset({ branch: defaultBranch ?? "main", commitHash: "" });
+      reset({ branch: defaultBranch ?? "main" });
     }
   }, [open, fixedRepositoryId, repositories, defaultBranch, reset]);
 
@@ -61,10 +61,7 @@ export function StartScanDialog({
     }
 
     setRepositoryError(null);
-    const payload: CreateScanInput = {
-      branch: values.branch,
-      ...(values.commitHash ? { commitHash: values.commitHash } : {})
-    };
+    const payload: CreateScanInput = { branch: values.branch };
 
     try {
       await createScan.mutateAsync({ repositoryId, input: payload });
@@ -83,7 +80,7 @@ export function StartScanDialog({
       open={open}
       onClose={onClose}
       title="Start a scan"
-      description="Creates a scan record for the selected repository. Scan execution is not implemented yet."
+      description="Queues a scan for the latest commit on the selected branch."
     >
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         {apiError ? (
@@ -129,23 +126,6 @@ export function StartScanDialog({
             invalid={Boolean(errors.branch)}
             aria-describedby={errors.branch ? "scan-branch-error" : undefined}
             {...register("branch")}
-          />
-        </FormField>
-
-        <FormField
-          id="scan-commit"
-          label="Commit hash"
-          hint="Optional. 7-40 hex characters."
-          error={errors.commitHash?.message}
-        >
-          <Input
-            id="scan-commit"
-            placeholder="a1b2c3d"
-            invalid={Boolean(errors.commitHash)}
-            aria-describedby={
-              errors.commitHash ? "scan-commit-error" : undefined
-            }
-            {...register("commitHash")}
           />
         </FormField>
 

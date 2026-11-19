@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { ErrorState } from "@/components/feedback/error-state";
 import { TableSkeleton } from "@/components/feedback/table-skeleton";
 import { PageHeader } from "@/components/layout/page-header";
-import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -30,7 +29,7 @@ export function ScansPage(): React.ReactElement {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Scans"
-        description="Scan records across all connected repositories."
+        description="Scan records and analysis across all connected repositories."
         actions={
           <Button
             onClick={() => setIsScanOpen(true)}
@@ -41,11 +40,6 @@ export function ScansPage(): React.ReactElement {
           </Button>
         }
       />
-
-      <Alert variant="info" title="Scan execution not implemented">
-        CodeSense stores scan records only. Scan progress, analysis results, and
-        background execution are part of a later development phase.
-      </Alert>
 
       <Card>
         <CardContent className="pt-4">
@@ -68,7 +62,7 @@ export function ScansPage(): React.ReactElement {
             <EmptyState
               icon={ScanSearch}
               title="No scans yet"
-              description="Create a scan record to start tracking analysis for a repository."
+              description="Queue a scan to analyze a repository's latest commit."
               action={
                 <Button onClick={() => setIsScanOpen(true)}>
                   <Play aria-hidden="true" />

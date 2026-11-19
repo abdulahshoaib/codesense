@@ -13,13 +13,25 @@ import { useRepositories } from "@/features/repositories/hooks/use-repositories"
 import { scanService } from "@/features/scans/services/scan.service";
 import { queryKeys } from "@/lib/query-keys";
 
+const SCAN_POLL_INTERVAL_MS = 3000;
+
+function hasActiveScan(scans: ScanDTO[] | undefined): boolean {
+  return Boolean(
+    scans?.some(
+      (scan) => scan.status === "queued" || scan.status === "running"
+    )
+  );
+}
+
 export function useRepositoryScans(
   repositoryId: string | undefined
 ): UseQueryResult<ScanDTO[], Error> {
   return useQuery({
     queryKey: queryKeys.scans.forRepository(repositoryId ?? ""),
     queryFn: () => scanService.listForRepository(repositoryId as string),
-    enabled: Boolean(repositoryId)
+    enabled: Boolean(repositoryId),
+    refetchInterval: (query) =>
+      hasActiveScan(query.state.data) ? SCAN_POLL_INTERVAL_MS : false
   });
 }
 
@@ -29,7 +41,13 @@ export function useScan(
   return useQuery({
     queryKey: queryKeys.scans.detail(id ?? ""),
     queryFn: () => scanService.get(id as string),
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "queued" || status === "running"
+        ? SCAN_POLL_INTERVAL_MS
+        : false;
+    }
   });
 }
 
@@ -86,7 +104,9 @@ export function useAllScans(): AllScansResult {
     queries: repositories.map((repository) => ({
       queryKey: queryKeys.scans.forRepository(repository.id),
       queryFn: () => scanService.listForRepository(repository.id),
-      enabled: repositoriesQuery.isSuccess
+      enabled: repositoriesQuery.isSuccess,
+      refetchInterval: (query: { state: { data?: ScanDTO[] } }) =>
+        hasActiveScan(query.state.data) ? SCAN_POLL_INTERVAL_MS : false
     }))
   });
 
