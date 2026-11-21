@@ -2,6 +2,18 @@ import { model, Schema, type Model } from "mongoose";
 
 import type { UserDocument } from "./user.types.js";
 
+const githubSchema = new Schema(
+  {
+    id: { type: Number, required: true },
+    login: { type: String, required: true, trim: true },
+    name: { type: String, default: null },
+    avatarUrl: { type: String, default: null },
+    accessToken: { type: String, required: true, select: false },
+    connectedAt: { type: Date, required: true }
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema<UserDocument>(
   {
     name: {
@@ -24,12 +36,9 @@ const userSchema = new Schema<UserDocument>(
       select: false
     },
     github: {
-      id: { type: Number, required: true },
-      login: { type: String, required: true, trim: true },
-      name: { type: String, default: null },
-      avatarUrl: { type: String, default: null },
-      accessToken: { type: String, required: true, select: false },
-      connectedAt: { type: Date, required: true }
+      type: githubSchema,
+      required: false,
+      default: undefined
     }
   },
   {
