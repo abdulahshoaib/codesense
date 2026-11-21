@@ -6,13 +6,33 @@ import { StartScanDialog } from "@/features/scans/components/start-scan-dialog";
 import { renderWithProviders } from "@/test/render";
 
 const mocks = vi.hoisted(() => ({
-  mutateAsync: vi.fn()
+  mutateAsync: vi.fn(),
+  navigate: vi.fn()
 }));
+
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>(
+    "react-router-dom"
+  );
+  return { ...actual, useNavigate: () => mocks.navigate };
+});
 
 vi.mock("@/features/scans/hooks/use-scans", () => ({
   useCreateScan: () => ({
     mutateAsync: mocks.mutateAsync,
     isPending: false,
+    isError: false,
+    error: null
+  })
+}));
+
+vi.mock("@/features/repositories/hooks/use-repositories", () => ({
+  useBranches: () => ({
+    data: [
+      { name: "main", commitHash: "aaa111" },
+      { name: "develop", commitHash: "bbb222" }
+    ],
+    isLoading: false,
     isError: false,
     error: null
   })
@@ -30,8 +50,10 @@ const repository = {
 };
 
 describe("StartScanDialog", () => {
-  it("submits only the branch and omits the commit hash field", async () => {
-    mocks.mutateAsync.mockResolvedValue({});
+  it("selects a branch and navigates to the new scan", async () => {
+    mocks.mutateAsync.mockResolvedValue({
+      id: "507f1f77bcf86cd799439014"
+    });
     const testUser = userEvent.setup();
 
     renderWithProviders(
@@ -46,9 +68,10 @@ describe("StartScanDialog", () => {
 
     expect(screen.queryByLabelText(/commit hash/i)).not.toBeInTheDocument();
 
-    const branchInput = screen.getByLabelText(/branch/i);
-    await testUser.clear(branchInput);
-    await testUser.type(branchInput, "develop");
+    const branchSelect = screen.getByLabelText(/branch/i);
+    expect(branchSelect).toHaveValue("main");
+
+    await testUser.selectOptions(branchSelect, "develop");
     await testUser.click(screen.getByRole("button", { name: "Create scan" }));
 
     await vi.waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalled());
@@ -56,5 +79,8 @@ describe("StartScanDialog", () => {
       repositoryId: repository.id,
       input: { branch: "develop" }
     });
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/scans/507f1f77bcf86cd799439014"
+    );
   });
 });

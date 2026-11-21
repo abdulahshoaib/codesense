@@ -8,7 +8,8 @@ export const queryKeys = {
   repositories: {
     all: () => ["repositories"] as const,
     list: () => ["repositories", "list"] as const,
-    detail: (id: string) => ["repositories", "detail", id] as const
+    detail: (id: string) => ["repositories", "detail", id] as const,
+    branches: (id: string) => ["repositories", "branches", id] as const
   },
   scans: {
     forRepository: (repositoryId: string) =>

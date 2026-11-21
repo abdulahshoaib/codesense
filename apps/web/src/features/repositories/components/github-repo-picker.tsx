@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,7 @@ export function GithubRepoPicker(): React.ReactElement {
   const githubRepos = useGithubRepositories();
   const repositories = useRepositories();
   const createRepository = useCreateRepository();
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
 
   const connectedUrls = useMemo(
@@ -125,13 +127,16 @@ export function GithubRepoPicker(): React.ReactElement {
                     isLoading={isConnecting}
                     disabled={createRepository.isPending}
                     onClick={() =>
-                      createRepository.mutate({
-                        name: repo.name,
-                        url: repo.url,
-                        provider: "github",
-                        defaultBranch: repo.defaultBranch || "main",
-                        description: repo.description ?? undefined
-                      })
+                      createRepository.mutate(
+                        {
+                          name: repo.name,
+                          url: repo.url,
+                          provider: "github",
+                          defaultBranch: repo.defaultBranch || "main",
+                          description: repo.description ?? undefined
+                        },
+                        { onSuccess: () => navigate("/scans") }
+                      )
                     }
                   >
                     Connect

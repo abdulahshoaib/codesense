@@ -4,6 +4,7 @@ export type {
   ApiResponse,
   ApiSuccess,
   AuthResponse,
+  BranchDTO,
   CreateRepositoryInput,
   CreateScanInput,
   DependencySummary,

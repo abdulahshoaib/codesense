@@ -1,13 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { CreateScanInput, RepositoryDTO } from "@codesense/shared";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { FormField } from "@/components/ui/form-field";
-import { Input, Select } from "@/components/ui/input";
+import { Select } from "@/components/ui/input";
+import { useBranches } from "@/features/repositories/hooks/use-repositories";
 import { useCreateScan } from "@/features/scans/hooks/use-scans";
 import {
   scanFormSchema,
@@ -31,28 +33,44 @@ export function StartScanDialog({
   defaultBranch
 }: StartScanDialogProps): React.ReactElement {
   const createScan = useCreateScan();
+  const navigate = useNavigate();
   const [repositoryId, setRepositoryId] = useState(
     fixedRepositoryId ?? repositories[0]?.id ?? ""
   );
   const [repositoryError, setRepositoryError] = useState<string | null>(null);
 
+  const branchesQuery = useBranches(repositoryId || undefined);
+  const branches = branchesQuery.data ?? [];
+
   const {
-    register,
+    control,
     handleSubmit,
-    reset,
+    setValue,
     formState: { errors }
   } = useForm<ScanFormValues>({
     resolver: zodResolver(scanFormSchema),
-    defaultValues: { branch: defaultBranch ?? "main" }
+    defaultValues: { branch: "" }
   });
 
   useEffect(() => {
     if (open) {
       setRepositoryId(fixedRepositoryId ?? repositories[0]?.id ?? "");
       setRepositoryError(null);
-      reset({ branch: defaultBranch ?? "main" });
     }
-  }, [open, fixedRepositoryId, repositories, defaultBranch, reset]);
+  }, [open, fixedRepositoryId, repositories]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const preferred =
+      defaultBranch && branches.some((branch) => branch.name === defaultBranch)
+        ? defaultBranch
+        : branches[0]?.name ?? "";
+
+    setValue("branch", preferred, { shouldValidate: false });
+  }, [open, defaultBranch, repositoryId, branches, setValue]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (!repositoryId) {
@@ -64,8 +82,8 @@ export function StartScanDialog({
     const payload: CreateScanInput = { branch: values.branch };
 
     try {
-      await createScan.mutateAsync({ repositoryId, input: payload });
-      onClose();
+      const scan = await createScan.mutateAsync({ repositoryId, input: payload });
+      navigate(`/scans/${scan.id}`);
     } catch {
       /* error surfaced through the mutation state below */
     }
@@ -73,6 +91,9 @@ export function StartScanDialog({
 
   const apiError = createScan.isError
     ? getErrorMessage(createScan.error)
+    : null;
+  const branchesError = branchesQuery.isError
+    ? getErrorMessage(branchesQuery.error)
     : null;
 
   return (
@@ -100,7 +121,10 @@ export function StartScanDialog({
               id="scan-repository"
               value={repositoryId}
               invalid={Boolean(repositoryError)}
-              onChange={(event) => setRepositoryId(event.target.value)}
+              onChange={(event) => {
+                setRepositoryId(event.target.value);
+                setValue("branch", "", { shouldValidate: false });
+              }}
             >
               <option value="" disabled>
                 Select a repository
@@ -118,14 +142,38 @@ export function StartScanDialog({
           id="scan-branch"
           label="Branch"
           required
-          error={errors.branch?.message}
+          hint={
+            branchesQuery.isLoading
+              ? "Loading branches..."
+              : "Scan runs on the latest commit of this branch."
+          }
+          error={errors.branch?.message ?? branchesError ?? undefined}
         >
-          <Input
-            id="scan-branch"
-            placeholder="main"
-            invalid={Boolean(errors.branch)}
-            aria-describedby={errors.branch ? "scan-branch-error" : undefined}
-            {...register("branch")}
+          <Controller
+            name="branch"
+            control={control}
+            render={({ field }) => (
+              <Select
+                id="scan-branch"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                invalid={Boolean(errors.branch) || Boolean(branchesError)}
+                disabled={branchesQuery.isLoading || branches.length === 0}
+              >
+                <option value="" disabled>
+                  {branchesQuery.isLoading
+                    ? "Loading branches..."
+                    : "Select a branch"}
+                </option>
+                {branches.map((branch) => (
+                  <option key={branch.name} value={branch.name}>
+                    {branch.name}
+                  </option>
+                ))}
+              </Select>
+            )}
           />
         </FormField>
 
@@ -138,7 +186,11 @@ export function StartScanDialog({
           >
             Cancel
           </Button>
-          <Button type="submit" isLoading={createScan.isPending}>
+          <Button
+            type="submit"
+            isLoading={createScan.isPending}
+            disabled={branchesQuery.isLoading || branches.length === 0}
+          >
             Create scan
           </Button>
         </div>

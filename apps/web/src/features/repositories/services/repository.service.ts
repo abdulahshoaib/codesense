@@ -1,4 +1,5 @@
 import type {
+  BranchDTO,
   CreateRepositoryInput,
   RepositoryDTO,
   UpdateRepositoryInput
@@ -13,6 +14,10 @@ export const repositoryService = {
 
   get(id: string): Promise<RepositoryDTO> {
     return apiClient.get<RepositoryDTO>(`/repositories/${id}`);
+  },
+
+  listBranches(id: string): Promise<BranchDTO[]> {
+    return apiClient.get<BranchDTO[]>(`/repositories/${id}/branches`);
   },
 
   create(input: CreateRepositoryInput): Promise<RepositoryDTO> {

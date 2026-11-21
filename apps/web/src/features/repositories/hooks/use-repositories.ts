@@ -1,4 +1,5 @@
 import type {
+  BranchDTO,
   CreateRepositoryInput,
   UpdateRepositoryInput
 } from "@codesense/shared";
@@ -28,6 +29,16 @@ export function useRepository(
     queryKey: queryKeys.repositories.detail(id ?? ""),
     queryFn: () => repositoryService.get(id as string),
     enabled: Boolean(id)
+  });
+}
+
+export function useBranches(
+  repositoryId: string | undefined
+): UseQueryResult<BranchDTO[], Error> {
+  return useQuery({
+    queryKey: queryKeys.repositories.branches(repositoryId ?? ""),
+    queryFn: () => repositoryService.listBranches(repositoryId as string),
+    enabled: Boolean(repositoryId)
   });
 }
 
