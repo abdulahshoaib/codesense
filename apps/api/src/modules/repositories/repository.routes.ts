@@ -22,6 +22,12 @@ router.post(
 router.get("/", repositoryController.list);
 
 router.get(
+  "/:id/branches",
+  validate({ params: repositoryIdParamSchema }),
+  repositoryController.listBranches
+);
+
+router.get(
   "/:id",
   validate({ params: repositoryIdParamSchema }),
   repositoryController.getOne

@@ -1,4 +1,4 @@
-import type { GithubRepositoryDTO, PublicUser } from "@codesense/shared";
+import type { BranchDTO, GithubRepositoryDTO, PublicUser } from "@codesense/shared";
 
 import { env } from "../../config/env.js";
 import {
@@ -13,6 +13,7 @@ import { ApiError } from "../../utils/ApiError.js";
 import { User } from "../users/user.model.js";
 import { toPublicUser } from "../users/user.types.js";
 import type {
+  GithubBranch,
   GithubRepository,
   GithubTokenResponse,
   GithubUser
@@ -115,6 +116,48 @@ export function buildGithubCloneUrl(
   url.password = accessToken;
 
   return `${url.toString()}.git`;
+}
+
+function parseGithubRepository(
+  repositoryUrl: string
+): { owner: string; repo: string } {
+  const normalized = repositoryUrl.replace(/\.git$/, "").replace(/\/$/, "");
+  const url = new URL(normalized);
+  const segments = url.pathname.split("/").filter(Boolean);
+
+  return { owner: segments[0] ?? "", repo: segments[1] ?? "" };
+}
+
+export async function listGithubBranches(
+  accessToken: string,
+  repositoryUrl: string
+): Promise<BranchDTO[]> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/branches?per_page=100`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub branches",
+      "GITHUB_BRANCHES_FETCH_FAILED"
+    );
+  }
+
+  const branches = (await response.json()) as GithubBranch[];
+
+  return branches.map((branch) => ({
+    name: branch.name,
+    commitHash: branch.commit?.sha ?? ""
+  }));
 }
 
 export async function listGithubRepositories(

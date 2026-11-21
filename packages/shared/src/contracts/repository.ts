@@ -1,5 +1,10 @@
 export type RepositoryProvider = "github" | "local";
 
+export interface BranchDTO {
+  name: string;
+  commitHash: string;
+}
+
 export interface RepositoryDTO {
   id: string;
   ownerId: string;

@@ -22,3 +22,10 @@ export interface GithubRepository {
   description: string | null;
   private: boolean;
 }
+
+export interface GithubBranch {
+  name: string;
+  commit: {
+    sha: string;
+  } | null;
+}

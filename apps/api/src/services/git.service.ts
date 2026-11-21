@@ -46,6 +46,24 @@ export async function cloneBranch(
   };
 }
 
+export async function listRemoteBranches(
+  url: string
+): Promise<Array<{ name: string; commitHash: string }>> {
+  const { stdout } = await execFileAsync("git", ["ls-remote", "--heads", url]);
+
+  return stdout
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [commitHash, ref] = line.split(/\s+/);
+      return {
+        commitHash: commitHash ?? "",
+        name: (ref ?? "").replace(/^refs\/heads\//, "")
+      };
+    })
+    .filter((branch) => branch.name.length > 0);
+}
+
 export async function removeDirectory(dir: string): Promise<void> {
   await rm(dir, { recursive: true, force: true });
 }

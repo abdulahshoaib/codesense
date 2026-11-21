@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { buildGithubCloneUrl } from "../../src/modules/github/github.service.js";
+import {
+  buildGithubCloneUrl,
+  listGithubBranches
+} from "../../src/modules/github/github.service.js";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("github service", () => {
   it("builds an authenticated clone URL from a repository URL", () => {
@@ -21,5 +28,32 @@ describe("github service", () => {
     );
 
     expect(url).toBe("https://x-access-token:token@github.com/acme/codesense.git");
+  });
+
+  it("lists branches from the GitHub API", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue([
+        { name: "main", commit: { sha: "abc123" } },
+        { name: "develop", commit: { sha: "def456" } }
+      ])
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const branches = await listGithubBranches(
+      "token",
+      "https://github.com/acme/codesense"
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.github.com/repos/acme/codesense/branches?per_page=100",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer token" })
+      })
+    );
+    expect(branches).toEqual([
+      { name: "main", commitHash: "abc123" },
+      { name: "develop", commitHash: "def456" }
+    ]);
   });
 });

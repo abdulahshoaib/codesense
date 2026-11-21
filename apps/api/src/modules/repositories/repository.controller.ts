@@ -48,10 +48,19 @@ const remove = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(successResponse(null, "Repository deleted"));
 });
 
+const listBranches = asyncHandler(async (req: Request, res: Response) => {
+  const branches = await repositoryService.listBranches(
+    req.user!.id,
+    req.params.id as string
+  );
+  res.status(200).json(successResponse(branches, "Branches retrieved"));
+});
+
 export const repositoryController = {
   create,
   list,
   getOne,
   update,
-  remove
+  remove,
+  listBranches
 };

@@ -1,10 +1,16 @@
 import type {
+  BranchDTO,
   RepositoryDTO,
   UpdateRepositoryInput
 } from "@codesense/shared";
 import { Types } from "mongoose";
 
+import { listRemoteBranches } from "../../services/git.service.js";
 import { ApiError } from "../../utils/ApiError.js";
+import {
+  getGithubAccessToken,
+  listGithubBranches
+} from "../github/github.service.js";
 import { Repository } from "./repository.model.js";
 import {
   toRepositoryDTO,
@@ -94,11 +100,26 @@ async function deleteRepository(
   }
 }
 
+async function listBranches(
+  ownerId: string,
+  repositoryId: string
+): Promise<BranchDTO[]> {
+  const repository = await getOwnedRepository(ownerId, repositoryId);
+
+  if (repository.provider === "github") {
+    const accessToken = await getGithubAccessToken(ownerId);
+    return listGithubBranches(accessToken, repository.url);
+  }
+
+  return listRemoteBranches(repository.url);
+}
+
 export const repositoryService = {
   createRepository,
   listRepositories,
   getOwnedRepository,
   getRepository,
   updateRepository,
-  deleteRepository
+  deleteRepository,
+  listBranches
 };
