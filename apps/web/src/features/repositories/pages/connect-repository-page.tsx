@@ -1,53 +1,53 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { RepositoryForm } from "@/features/repositories/components/repository-form";
-import { useCreateRepository } from "@/features/repositories/hooks/use-repositories";
-import type { RepositoryFormValues } from "@/features/repositories/schemas/repository.schemas";
-import { getErrorMessage } from "@/lib/api-client";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { GithubRepoPicker } from "@/features/repositories/components/github-repo-picker";
+import { useAuthStore } from "@/stores/auth.store";
 
 export function ConnectRepositoryPage(): React.ReactElement {
-  const createRepository = useCreateRepository();
-  const navigate = useNavigate();
-
-  const handleSubmit = (values: RepositoryFormValues): void => {
-    createRepository.mutate(
-      {
-        name: values.name,
-        url: values.url,
-        provider: values.provider,
-        defaultBranch: values.defaultBranch,
-        description: values.description
-      },
-      {
-        onSuccess: (repository) => {
-          navigate(`/repositories/${repository.id}`, { replace: true });
-        }
-      }
-    );
-  };
+  const user = useAuthStore((state) => state.user);
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Connect repository"
-        description="Add repository metadata to CodeSense. GitHub OAuth, cloning, and scanning are not implemented yet."
+        description="Import repositories from your connected GitHub account."
       />
 
       <Card className="max-w-2xl">
-        <CardContent className="pt-4">
-          <RepositoryForm
-            submitLabel="Connect repository"
-            isSubmitting={createRepository.isPending}
-            apiError={
-              createRepository.isError
-                ? getErrorMessage(createRepository.error)
-                : null
-            }
-            onSubmit={handleSubmit}
-            onCancel={() => navigate("/repositories")}
-          />
+        <CardHeader>
+          <CardTitle>Import from GitHub</CardTitle>
+          <CardDescription>
+            Browse repositories on your connected GitHub account and connect them
+            with one click.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {user?.github ? (
+            <GithubRepoPicker />
+          ) : (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">
+                Connect your GitHub account to import its repositories.
+              </p>
+              <div>
+                <Link
+                  to="/settings"
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  Connect GitHub
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

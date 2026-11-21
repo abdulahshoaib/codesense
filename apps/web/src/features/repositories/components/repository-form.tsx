@@ -76,7 +76,7 @@ export function RepositoryForm({
         id="repository-url"
         label="Repository URL"
         required
-        hint="GitHub URL stored as metadata only. OAuth and cloning are not implemented yet."
+        hint="GitHub URL stored as metadata. Use Import from GitHub to auto-fill."
         error={errors.url?.message}
       >
         <Input
