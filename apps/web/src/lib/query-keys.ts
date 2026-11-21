@@ -2,6 +2,9 @@ export const queryKeys = {
   auth: {
     me: () => ["auth", "me"] as const
   },
+  github: {
+    repositories: () => ["github", "repositories"] as const
+  },
   repositories: {
     all: () => ["repositories"] as const,
     list: () => ["repositories", "list"] as const,

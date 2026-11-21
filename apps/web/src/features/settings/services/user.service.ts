@@ -1,5 +1,6 @@
 import type {
   GitHubAuthorizeResponse,
+  GithubRepositoryDTO,
   PublicUser,
   UpdateProfileInput
 } from "@codesense/shared";
@@ -17,5 +18,9 @@ export const userService = {
 
   githubDisconnect(): Promise<PublicUser> {
     return apiClient.delete<PublicUser>("/auth/github");
+  },
+
+  githubRepositories(): Promise<GithubRepositoryDTO[]> {
+    return apiClient.get<GithubRepositoryDTO[]>("/auth/github/repositories");
   }
 };

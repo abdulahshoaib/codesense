@@ -38,6 +38,9 @@ export function useDisconnectGithub(): UseMutationResult<
     onSuccess: (user) => {
       setUser(user);
       queryClient.setQueryData(queryKeys.auth.me(), user);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.github.repositories()
+      });
     }
   });
 }

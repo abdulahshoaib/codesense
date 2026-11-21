@@ -8,6 +8,7 @@ export type {
   CreateScanInput,
   GitHubAuthorizeResponse,
   GitHubConnection,
+  GithubRepositoryDTO,
   LoginInput,
   PublicUser,
   RegisterInput,
