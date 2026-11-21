@@ -1,4 +1,5 @@
 export * from "./contracts/api.js";
+export * from "./contracts/github.js";
 export * from "./contracts/user.js";
 export * from "./contracts/repository.js";
 export * from "./contracts/scan.js";
