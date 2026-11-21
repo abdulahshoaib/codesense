@@ -53,6 +53,14 @@ fails fast if anything required is missing or malformed.
 | `JWT_EXPIRES_IN` | no       | Default `1d`                                                     |
 | `CORS_ORIGIN`    | no       | Comma-separated origins, or `*`. Default `http://localhost:5173` |
 | `LOG_LEVEL`      | no       | Pino level (default `info`)                                      |
+| `GITHUB_CLIENT_ID`    | no   | GitHub OAuth app client id (required to connect/scan GitHub repos) |
+| `GITHUB_CLIENT_SECRET`| no   | GitHub OAuth app client secret                                    |
+| `GITHUB_REDIRECT_URI` | no   | Default `http://localhost:5000/api/v1/auth/github/callback`       |
+| `GITHUB_API_URL`      | no   | Default `https://api.github.com`                                  |
+| `WEB_APP_URL`         | no   | Default `http://localhost:5173`                                   |
+| `AI_API_KEY`          | no   | OpenAI-compatible API key; omit to skip the AI codebase summary   |
+| `AI_BASE_URL`         | no   | Default `https://api.openai.com/v1`                               |
+| `AI_MODEL`            | no   | Default `gpt-4o-mini`                                             |
 
 ## Scripts
 
@@ -83,7 +91,7 @@ Base path for the versioned API is `/api/v1`.
 | GET    | `/api/v1/repositories/:id`       | yes  | Get one owned repository                                   |
 | PATCH  | `/api/v1/repositories/:id`       | yes  | Update an owned repository                                 |
 | DELETE | `/api/v1/repositories/:id`       | yes  | Delete an owned repository                                 |
-| POST   | `/api/v1/repositories/:id/scans` | yes  | Create a `queued` scan record                              |
+| POST   | `/api/v1/repositories/:id/scans` | yes  | Queue a scan for the branch's latest commit                |
 | GET    | `/api/v1/repositories/:id/scans` | yes  | List scans for an owned repository                         |
 | GET    | `/api/v1/scans/:id`              | yes  | Get one owned scan                                         |
 
@@ -124,9 +132,11 @@ status codes. Stack traces are only attached outside production. Invalid payload
 - **Repository** — `ownerId` (ref `User`), `name`, `url`, `provider` (`github` | `local`),
   `defaultBranch`, optional `description`, timestamps. Indexed by owner; unique per
   owner + url.
-- **Scan** — `repositoryId`, `ownerId`, `branch`, optional `commitHash`, `status`
-  (`queued` | `running` | `completed` | `failed`), optional `startedAt`, `completedAt`,
-  `error`, timestamps.
+- **Scan** — `repositoryId`, `ownerId`, `branch`, `status`
+  (`queued` | `running` | `completed` | `failed`), and once executed: resolved
+  `commitHash`, `committedAt`, a static `summary` (file count, lines of code, language
+  breakdown, and detected dependencies), an optional `aiSummary`, plus `startedAt`,
+  `completedAt`, and `error`.
 
 Repository and scan queries are always scoped by the authenticated `ownerId`, so one user
 cannot read or mutate another user's data; a miss returns `404` rather than leaking
@@ -146,5 +156,7 @@ controller→service delegation. Tests mock the data layer and do not need a liv
 
 - MongoDB connects before the server starts listening; a connection failure exits non-zero.
 - `SIGINT`/`SIGTERM` close the HTTP server, disconnect from MongoDB, and exit cleanly.
-- Scanning, cloning, AST/dependency analysis, and LLM features are out of scope here; the
-  scan module only records and returns scan state.
+- Scans run asynchronously in-process after creation: the API resolves the branch's latest
+  commit, does a shallow clone, computes static + dependency analysis, and optionally asks
+  an OpenAI-compatible model for a codebase summary. Scans left `running` across a process
+  restart are not auto-recovered.
