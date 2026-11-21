@@ -7,7 +7,8 @@ import { successResponse } from "../../utils/response.js";
 import {
   completeAuthorization,
   disconnect,
-  getAuthorizeUrl
+  getAuthorizeUrl,
+  listGithubRepositories
 } from "./github.service.js";
 
 const authorize = asyncHandler(async (req: Request, res: Response) => {
@@ -42,8 +43,14 @@ const disconnectGithub = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(successResponse(user, "GitHub account disconnected"));
 });
 
+const listRepositories = asyncHandler(async (req: Request, res: Response) => {
+  const repositories = await listGithubRepositories(req.user!.id);
+  res.status(200).json(successResponse(repositories, "GitHub repositories retrieved"));
+});
+
 export const githubController = {
   authorize,
   callback,
-  disconnect: disconnectGithub
+  disconnect: disconnectGithub,
+  listRepositories
 };

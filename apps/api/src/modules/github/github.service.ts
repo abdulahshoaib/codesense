@@ -1,7 +1,10 @@
-import type { PublicUser } from "@codesense/shared";
+import type { GithubRepositoryDTO, PublicUser } from "@codesense/shared";
 
 import { env } from "../../config/env.js";
-import { encryptSecret } from "../../services/encryption.service.js";
+import {
+  decryptSecret,
+  encryptSecret
+} from "../../services/encryption.service.js";
 import {
   signOAuthState,
   verifyOAuthState
@@ -9,11 +12,15 @@ import {
 import { ApiError } from "../../utils/ApiError.js";
 import { User } from "../users/user.model.js";
 import { toPublicUser } from "../users/user.types.js";
-import type { GithubTokenResponse, GithubUser } from "./github.types.js";
+import type {
+  GithubRepository,
+  GithubTokenResponse,
+  GithubUser
+} from "./github.types.js";
 
 const GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize";
 const GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token";
-const SCOPES = "read:user user:email";
+const SCOPES = "read:user user:email repo";
 
 function assertConfigured(): void {
   if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET) {
@@ -82,6 +89,56 @@ async function fetchGithubUser(accessToken: string): Promise<GithubUser> {
   }
 
   return (await response.json()) as GithubUser;
+}
+
+async function getGithubAccessToken(userId: string): Promise<string> {
+  const user = await User.findById(userId).select("+github.accessToken").exec();
+  const accessToken = user?.github?.accessToken;
+
+  if (!accessToken) {
+    throw ApiError.badRequest(
+      "GitHub account is not connected",
+      "GITHUB_NOT_CONNECTED"
+    );
+  }
+
+  return decryptSecret(accessToken);
+}
+
+export async function listGithubRepositories(
+  userId: string
+): Promise<GithubRepositoryDTO[]> {
+  const accessToken = await getGithubAccessToken(userId);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub repositories",
+      "GITHUB_REPOS_FETCH_FAILED"
+    );
+  }
+
+  const repos = (await response.json()) as GithubRepository[];
+
+  return repos.map((repo) => ({
+    id: repo.id,
+    name: repo.name,
+    fullName: repo.full_name,
+    url: repo.html_url,
+    defaultBranch: repo.default_branch ?? "main",
+    description: repo.description,
+    private: repo.private
+  }));
 }
 
 export async function completeAuthorization(

@@ -12,3 +12,13 @@ export interface GithubUser {
   name: string | null;
   avatar_url: string | null;
 }
+
+export interface GithubRepository {
+  id: number;
+  name: string;
+  full_name: string;
+  html_url: string;
+  default_branch: string | null;
+  description: string | null;
+  private: boolean;
+}
