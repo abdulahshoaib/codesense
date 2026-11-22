@@ -32,6 +32,10 @@ export interface ScanDTO {
   error?: string;
   summary?: ScanSummary;
   aiSummary?: string;
+  llmProvider?: string;
+  llmModel?: string;
+  llmFallbackUsed?: boolean;
+  aiError?: string;
   createdAt: string;
   updatedAt: string;
 }
