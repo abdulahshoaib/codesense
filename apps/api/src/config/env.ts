@@ -26,7 +26,9 @@ export const envSchema = z.object({
   WEB_APP_URL: z.string().default("http://localhost:5173"),
   GROQ_API_KEY: z.string().default(""),
   OPENROUTER_API_KEY: z.string().default(""),
-  LLM_FALLBACK_ORDER: z.string().default("groq,openrouter")
+  LLM_FALLBACK_ORDER: z.string().default("groq,openrouter"),
+  GITHUB_WEBHOOK_SECRET: z.string().default(""),
+  WEBHOOK_BASE_URL: z.string().default("")
 });
 
 export type Env = z.infer<typeof envSchema>;

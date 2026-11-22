@@ -399,3 +399,78 @@ export async function analyzeDirectory(
 
   return { files, linesOfCode, languages, dependencies };
 }
+
+const MAX_SOURCE_CHARS = 6000;
+const MAX_FILE_CHARS = 1500;
+
+const MANIFEST_NAMES = new Set([
+  "package.json",
+  "requirements.txt",
+  "go.mod",
+  "gemfile",
+  "composer.json",
+  "cargo.toml",
+  "pom.xml",
+  "pyproject.toml"
+]);
+
+function sourceRank(filePath: string): number {
+  const name = basename(filePath).toLowerCase();
+
+  if (name.startsWith("readme")) {
+    return 0;
+  }
+
+  if (MANIFEST_NAMES.has(name)) {
+    return 1;
+  }
+
+  return 2;
+}
+
+export async function collectRepresentativeSource(
+  rootDir: string
+): Promise<string> {
+  const candidates: string[] = [];
+
+  await walkDirectory(rootDir, async (filePath) => {
+    const name = basename(filePath).toLowerCase();
+    const isReadme = name.startsWith("readme");
+    const isManifest = MANIFEST_NAMES.has(name);
+    const isSource = detectLanguage(filePath) !== null;
+
+    if (isReadme || isManifest || isSource) {
+      candidates.push(filePath);
+    }
+  });
+
+  candidates.sort(
+    (left, right) => sourceRank(left) - sourceRank(right) || left.localeCompare(right)
+  );
+
+  const chunks: string[] = [];
+  let totalChars = 0;
+
+  for (const filePath of candidates) {
+    if (totalChars >= MAX_SOURCE_CHARS) {
+      break;
+    }
+
+    const content = await readFile(filePath, "utf8").catch(() => null);
+    if (content === null || !isText(content)) {
+      continue;
+    }
+
+    const relativePath = filePath.slice(rootDir.length + 1);
+    const combined = `--- ${relativePath} ---\n${content.slice(0, MAX_FILE_CHARS)}`;
+
+    if (totalChars + combined.length > MAX_SOURCE_CHARS) {
+      continue;
+    }
+
+    chunks.push(combined);
+    totalChars += combined.length;
+  }
+
+  return chunks.join("\n");
+}

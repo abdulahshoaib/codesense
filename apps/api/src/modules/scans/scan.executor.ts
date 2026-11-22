@@ -5,13 +5,17 @@ import { join } from "node:path";
 import type { LlmProvider } from "@codesense/shared";
 
 import { logger } from "../../config/logger.js";
-import { analyzeDirectory } from "../../services/analysis.service.js";
+import {
+  analyzeDirectory,
+  collectRepresentativeSource
+} from "../../services/analysis.service.js";
 import { cloneBranch } from "../../services/git.service.js";
 import {
   buildGithubCloneUrl,
   getGithubAccessToken
 } from "../github/github.service.js";
 import { llmService, type CodebaseSummaryResult } from "../llm/llm.service.js";
+import { repositoryInsightService } from "../repositories/repository-insight.service.js";
 import { Repository } from "../repositories/repository.model.js";
 import { Scan } from "./scan.model.js";
 
@@ -67,12 +71,12 @@ export async function executeScan(scanId: string): Promise<void> {
     const workDir = await mkdtemp(join(tmpdir(), "codesense-scan-"));
 
     try {
-      const checkout = await cloneBranch(
-        cloneUrl,
-        scan.branch,
-        join(workDir, "repo")
+      const repoDir = join(workDir, "repo");
+      const checkout = await cloneBranch(cloneUrl, scan.branch, repoDir);
+      const summary = await analyzeDirectory(repoDir);
+      const source = await collectRepresentativeSource(repoDir).catch(
+        () => ""
       );
-      const summary = await analyzeDirectory(join(workDir, "repo"));
 
       let llm: CodebaseSummaryResult | null = null;
 
@@ -89,12 +93,32 @@ export async function executeScan(scanId: string): Promise<void> {
             files: summary.files,
             linesOfCode: summary.linesOfCode,
             languages: summary.languages,
-            dependencies: summary.dependencies
+            dependencies: summary.dependencies,
+            source
           }
         );
       } catch (error) {
         logger.warn({ error, scanId }, "AI codebase summary skipped");
         llm = null;
+      }
+
+      if (llm?.aiSummary) {
+        await repositoryInsightService
+          .updateContext(repository, llm.aiSummary, checkout.commitHash)
+          .catch((error) => {
+            logger.warn({ error, scanId }, "Project context update failed");
+          });
+      }
+
+      if (repository.provider === "github") {
+        void repositoryInsightService
+          .refreshGithubData(
+            scan.ownerId.toString(),
+            scan.repositoryId.toString()
+          )
+          .catch((error) => {
+            logger.warn({ error, scanId }, "GitHub insight refresh failed");
+          });
       }
 
       await Scan.findByIdAndUpdate(scanId, {

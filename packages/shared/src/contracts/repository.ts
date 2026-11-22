@@ -13,6 +13,7 @@ export interface RepositoryDTO {
   provider: RepositoryProvider;
   defaultBranch: string;
   description?: string;
+  githubFullName?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -9,6 +9,8 @@ export interface RepositoryDocument {
   provider: RepositoryProvider;
   defaultBranch: string;
   description?: string;
+  githubFullName?: string;
+  githubWebhookId?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +21,7 @@ export interface CreateRepositoryData {
   provider: RepositoryProvider;
   defaultBranch: string;
   description?: string;
+  githubFullName?: string;
 }
 
 export function toRepositoryDTO(repository: RepositoryDocument): RepositoryDTO {
@@ -31,6 +34,9 @@ export function toRepositoryDTO(repository: RepositoryDocument): RepositoryDTO {
     defaultBranch: repository.defaultBranch,
     ...(repository.description !== undefined
       ? { description: repository.description }
+      : {}),
+    ...(repository.githubFullName !== undefined
+      ? { githubFullName: repository.githubFullName }
       : {}),
     createdAt: repository.createdAt.toISOString(),
     updatedAt: repository.updatedAt.toISOString()

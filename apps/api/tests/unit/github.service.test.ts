@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildGithubCloneUrl,
+  githubFullNameFromUrl,
   listGithubBranches
 } from "../../src/modules/github/github.service.js";
 
@@ -28,6 +29,16 @@ describe("github service", () => {
     );
 
     expect(url).toBe("https://x-access-token:token@github.com/acme/codesense.git");
+  });
+
+  it("reads owner and repo from a GitHub URL", () => {
+    expect(githubFullNameFromUrl("https://github.com/acme/codesense")).toBe(
+      "acme/codesense"
+    );
+    expect(githubFullNameFromUrl("https://github.com/acme/codesense.git")).toBe(
+      "acme/codesense"
+    );
+    expect(githubFullNameFromUrl("not a url")).toBeNull();
   });
 
   it("lists branches from the GitHub API", async () => {

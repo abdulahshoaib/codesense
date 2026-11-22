@@ -4,7 +4,10 @@ import { join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { analyzeDirectory } from "../../src/services/analysis.service.js";
+import {
+  analyzeDirectory,
+  collectRepresentativeSource
+} from "../../src/services/analysis.service.js";
 
 let rootDir: string;
 
@@ -76,5 +79,15 @@ describe("analysis service", () => {
 
     expect(summary.files).toBe(1);
     expect(summary.linesOfCode).toBe(1);
+  });
+
+  it("puts the readme ahead of source files in the excerpt", async () => {
+    await writeFixture("src/app.ts", "export const app = true;\n");
+    await writeFixture("README.md", "CodeSense overview\n");
+
+    const source = await collectRepresentativeSource(rootDir);
+
+    expect(source.indexOf("README.md")).toBeGreaterThanOrEqual(0);
+    expect(source.indexOf("README.md")).toBeLessThan(source.indexOf("app.ts"));
   });
 });

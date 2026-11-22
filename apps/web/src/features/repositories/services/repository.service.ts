@@ -1,6 +1,7 @@
 import type {
   BranchDTO,
   CreateRepositoryInput,
+  ProjectContextDTO,
   RepositoryDTO,
   UpdateRepositoryInput
 } from "@codesense/shared";
@@ -18,6 +19,14 @@ export const repositoryService = {
 
   listBranches(id: string): Promise<BranchDTO[]> {
     return apiClient.get<BranchDTO[]>(`/repositories/${id}/branches`);
+  },
+
+  getInsight(id: string): Promise<ProjectContextDTO> {
+    return apiClient.get<ProjectContextDTO>(`/repositories/${id}/insight`);
+  },
+
+  refreshInsight(id: string): Promise<ProjectContextDTO> {
+    return apiClient.post<ProjectContextDTO>(`/repositories/${id}/insight/refresh`);
   },
 
   create(input: CreateRepositoryInput): Promise<RepositoryDTO> {

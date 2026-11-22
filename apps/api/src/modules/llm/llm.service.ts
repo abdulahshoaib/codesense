@@ -11,7 +11,12 @@ import {
 } from "@codesense/shared";
 
 import { env } from "../../config/env.js";
-import { summarizeCodebase, type CodebaseSummaryInput } from "../../services/ai.service.js";
+import { logger } from "../../config/logger.js";
+import {
+  generateText,
+  summarizeCodebase,
+  type CodebaseSummaryInput
+} from "../../services/ai.service.js";
 import {
   decryptSecret,
   encryptSecret
@@ -378,11 +383,44 @@ export async function summarizeCodebaseForScan(
   }
 }
 
+export async function generateTextForUser(
+  userId: string,
+  input: { system: string; user: string; maxTokens?: number }
+): Promise<string | null> {
+  const user = await loadUser(userId);
+  const selection = resolveSelection(user);
+
+  if (!selection) {
+    return null;
+  }
+
+  const apiKey = await resolveApiKey(user, selection.provider);
+
+  if (!apiKey) {
+    return null;
+  }
+
+  try {
+    return await generateText({
+      provider: selection.provider,
+      modelId: selection.modelId,
+      apiKey,
+      system: input.system,
+      user: input.user,
+      maxTokens: input.maxTokens
+    });
+  } catch (error) {
+    logger.warn({ error, userId }, "LLM text generation skipped");
+    return null;
+  }
+}
+
 export const llmService = {
   getModels,
   updatePreference,
   setKey,
   deleteKey,
   resolveSelection,
-  summarizeCodebaseForScan
+  summarizeCodebaseForScan,
+  generateTextForUser
 };

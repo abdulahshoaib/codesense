@@ -133,7 +133,8 @@ export function GithubRepoPicker(): React.ReactElement {
                           url: repo.url,
                           provider: "github",
                           defaultBranch: repo.defaultBranch || "main",
-                          description: repo.description ?? undefined
+                          description: repo.description ?? undefined,
+                          githubFullName: repo.fullName
                         },
                         { onSuccess: () => navigate("/scans") }
                       )

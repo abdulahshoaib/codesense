@@ -38,6 +38,15 @@ const repositorySchema = new Schema<RepositoryDocument>(
       type: String,
       trim: true,
       maxlength: 500
+    },
+    githubFullName: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+      index: true
+    },
+    githubWebhookId: {
+      type: Number
     }
   },
   {

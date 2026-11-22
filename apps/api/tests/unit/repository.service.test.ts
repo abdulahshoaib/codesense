@@ -72,7 +72,7 @@ describe("repository service ownership enforcement", () => {
   });
 
   it("scopes delete operations by owner", async () => {
-    mocks.findOneAndDelete.mockReturnValue({
+    mocks.findOne.mockReturnValue({
       exec: vi.fn().mockResolvedValue(null)
     });
 
@@ -80,10 +80,12 @@ describe("repository service ownership enforcement", () => {
       repositoryService.deleteRepository(ownerId, repositoryId)
     ).rejects.toBeInstanceOf(ApiError);
 
-    const filter = mocks.findOneAndDelete.mock.calls[0]?.[0] as {
+    const filter = mocks.findOne.mock.calls.at(-1)?.[0] as {
+      _id: { toString: () => string };
       ownerId: { toString: () => string };
     };
     expect(filter.ownerId.toString()).toBe(ownerId);
+    expect(filter._id.toString()).toBe(repositoryId);
   });
 
   it("scopes list queries by owner", async () => {

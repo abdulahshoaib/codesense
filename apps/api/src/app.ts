@@ -11,6 +11,7 @@ import healthRoutes from "./routes/health.routes.js";
 import { apiRouter } from "./routes/index.js";
 
 const BODY_LIMIT = "1mb";
+const GITHUB_WEBHOOK_PATH = "/api/v1/github/webhook";
 
 function resolveCorsOrigin(): boolean | string[] {
   if (env.CORS_ORIGIN === "*") {
@@ -25,9 +26,21 @@ export function createApp(): Express {
 
   app.disable("x-powered-by");
 
+  const jsonParser = express.json({ limit: BODY_LIMIT });
+  const webhookParser = express.raw({ type: () => true, limit: BODY_LIMIT });
+
   app.use(helmet());
   app.use(cors({ origin: resolveCorsOrigin(), credentials: true }));
-  app.use(express.json({ limit: BODY_LIMIT }));
+  app.use((req, res, next) => {
+    const path = req.originalUrl.split("?")[0];
+
+    if (path === GITHUB_WEBHOOK_PATH) {
+      webhookParser(req, res, next);
+      return;
+    }
+
+    jsonParser(req, res, next);
+  });
   app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
   app.use(pinoHttp({ logger }));
 

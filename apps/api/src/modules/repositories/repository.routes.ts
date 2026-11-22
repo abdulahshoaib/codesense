@@ -28,6 +28,18 @@ router.get(
 );
 
 router.get(
+  "/:id/insight",
+  validate({ params: repositoryIdParamSchema }),
+  repositoryController.getInsight
+);
+
+router.post(
+  "/:id/insight/refresh",
+  validate({ params: repositoryIdParamSchema }),
+  repositoryController.refreshInsight
+);
+
+router.get(
   "/:id",
   validate({ params: repositoryIdParamSchema }),
   repositoryController.getOne

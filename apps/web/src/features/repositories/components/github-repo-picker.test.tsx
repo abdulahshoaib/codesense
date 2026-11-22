@@ -68,7 +68,8 @@ describe("GithubRepoPicker", () => {
       url: "https://github.com/acme/codesense",
       provider: "github",
       defaultBranch: "main",
-      description: "Code intelligence"
+      description: "Code intelligence",
+      githubFullName: "acme/codesense"
     });
     expect(mocks.navigate).toHaveBeenCalledWith("/scans");
   });

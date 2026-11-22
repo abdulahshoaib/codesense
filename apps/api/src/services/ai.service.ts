@@ -6,6 +6,8 @@ import type {
 
 import { createLlmProvider, LLM_PROVIDERS } from "./llm/index.js";
 
+const MAX_SOURCE_CHARS = 6000;
+
 export interface CodebaseSummaryInput {
   repositoryName: string;
   branch: string;
@@ -13,12 +15,23 @@ export interface CodebaseSummaryInput {
   linesOfCode: number;
   languages: LanguageSummary[];
   dependencies: DependencySummary[];
+  source?: string;
 }
 
 export interface SummarizeCodebaseInput extends CodebaseSummaryInput {
   provider: LlmProvider;
   modelId: string;
   apiKey: string;
+}
+
+export interface GenerateTextInput {
+  provider: LlmProvider;
+  modelId: string;
+  apiKey: string;
+  system: string;
+  user: string;
+  maxTokens?: number;
+  temperature?: number;
 }
 
 export function buildPrompt(input: CodebaseSummaryInput): string {
@@ -39,18 +52,23 @@ export function buildPrompt(input: CodebaseSummaryInput): string {
     )
     .join(", ");
 
+  const source = input.source?.trim();
+
   return [
     `Repository: ${input.repositoryName}`,
     `Branch: ${input.branch}`,
     `Files: ${input.files}`,
     `Lines of code: ${input.linesOfCode}`,
     `Languages: ${languages || "unknown"}`,
-    `Dependencies: ${dependencies || "none detected"}`
+    `Dependencies: ${dependencies || "none detected"}`,
+    ...(source
+      ? [`Source excerpts:\n${source.slice(0, MAX_SOURCE_CHARS)}`]
+      : [])
   ].join("\n");
 }
 
-export async function summarizeCodebase(
-  input: SummarizeCodebaseInput
+export async function generateText(
+  input: GenerateTextInput
 ): Promise<string> {
   const descriptor = LLM_PROVIDERS[input.provider];
   const provider = createLlmProvider({
@@ -62,12 +80,24 @@ export async function summarizeCodebase(
 
   const result = await provider.complete({
     model: input.modelId,
-    system:
-      "You are a code intelligence assistant. Given a summary of a codebase, produce a concise architecture overview covering purpose, structure, notable technologies, and any risks or observations.",
-    user: buildPrompt(input),
-    maxTokens: 800,
-    temperature: 0.3
+    system: input.system,
+    user: input.user,
+    maxTokens: input.maxTokens ?? 800,
+    temperature: input.temperature ?? 0.3
   });
 
   return result.text;
+}
+
+export async function summarizeCodebase(
+  input: SummarizeCodebaseInput
+): Promise<string> {
+  return generateText({
+    provider: input.provider,
+    modelId: input.modelId,
+    apiKey: input.apiKey,
+    system:
+      "You are a code intelligence assistant. Given a summary of a codebase and representative source excerpts, produce a concise architecture overview covering what is implemented, structure, notable technologies, future scope, and any risks or observations.",
+    user: buildPrompt(input)
+  });
 }

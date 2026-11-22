@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import authRoutes from "../modules/auth/auth.routes.js";
 import githubRoutes from "../modules/github/github.routes.js";
+import { githubWebhookRoutes } from "../modules/github/github-webhook.routes.js";
 import llmRoutes, {
   userLlmRoutes
 } from "../modules/llm/llm.routes.js";
@@ -19,6 +20,7 @@ apiRouter.get("/", (_req, res) => {
 });
 
 apiRouter.use("/auth/github", githubRoutes);
+apiRouter.use("/github", githubWebhookRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/llm", llmRoutes);
 apiRouter.use("/users/me/llm", userLlmRoutes);

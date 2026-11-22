@@ -13,7 +13,8 @@ export const createRepositorySchema = z.object({
   url: repositoryUrlSchema,
   provider: repositoryProviderSchema,
   defaultBranch: z.string().trim().min(1).max(200).default("main"),
-  description: z.string().trim().max(500).optional()
+  description: z.string().trim().max(500).optional(),
+  githubFullName: z.string().trim().max(200).optional()
 });
 
 export const updateRepositorySchema = createRepositorySchema

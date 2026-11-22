@@ -1,4 +1,13 @@
-import type { BranchDTO, GithubRepositoryDTO, PublicUser } from "@codesense/shared";
+import crypto from "node:crypto";
+
+import type {
+  BranchDTO,
+  CommitHistoryDTO,
+  GithubRepositoryDTO,
+  PublicUser,
+  RepositoryIssueDTO,
+  RepositoryPullRequestDTO
+} from "@codesense/shared";
 
 import { env } from "../../config/env.js";
 import {
@@ -14,6 +23,9 @@ import { User } from "../users/user.model.js";
 import { toPublicUser } from "../users/user.types.js";
 import type {
   GithubBranch,
+  GithubCommit,
+  GithubIssue,
+  GithubPullRequest,
   GithubRepository,
   GithubTokenResponse,
   GithubUser
@@ -128,6 +140,20 @@ function parseGithubRepository(
   return { owner: segments[0] ?? "", repo: segments[1] ?? "" };
 }
 
+export function githubFullNameFromUrl(repositoryUrl: string): string | null {
+  try {
+    const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+    if (!owner || !repo) {
+      return null;
+    }
+
+    return `${owner}/${repo}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function listGithubBranches(
   accessToken: string,
   repositoryUrl: string
@@ -194,6 +220,215 @@ export async function listGithubRepositories(
     description: repo.description,
     private: repo.private
   }));
+}
+
+export async function listGithubIssues(
+  accessToken: string,
+  repositoryUrl: string
+): Promise<Array<Omit<RepositoryIssueDTO, "aiSummary">>> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/issues?state=all&per_page=50&sort=created&direction=desc`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub issues",
+      "GITHUB_ISSUES_FETCH_FAILED"
+    );
+  }
+
+  const issues = (await response.json()) as GithubIssue[];
+
+  return issues
+    .filter((issue) => issue.pull_request === undefined)
+    .map((issue) => ({
+      number: issue.number,
+      title: issue.title,
+      body: issue.body,
+      state: issue.state === "closed" ? "closed" : "open",
+      url: issue.html_url,
+      author: issue.user?.login ?? null,
+      createdAt: issue.created_at
+    }));
+}
+
+export async function listGithubPullRequests(
+  accessToken: string,
+  repositoryUrl: string
+): Promise<Array<Omit<RepositoryPullRequestDTO, "aiSummary">>> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/pulls?state=all&per_page=50&sort=created&direction=desc`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub pull requests",
+      "GITHUB_PULLS_FETCH_FAILED"
+    );
+  }
+
+  const pulls = (await response.json()) as GithubPullRequest[];
+
+  return pulls.map((pr) => ({
+    number: pr.number,
+    title: pr.title,
+    body: pr.body,
+    state: pr.merged_at
+      ? "merged"
+      : pr.state === "closed"
+        ? "closed"
+        : "open",
+    url: pr.html_url,
+    author: pr.user?.login ?? null,
+    createdAt: pr.created_at
+  }));
+}
+
+export async function listGithubCommits(
+  accessToken: string,
+  repositoryUrl: string,
+  branch: string
+): Promise<CommitHistoryDTO[]> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=50`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to fetch GitHub commits",
+      "GITHUB_COMMITS_FETCH_FAILED"
+    );
+  }
+
+  const commits = (await response.json()) as GithubCommit[];
+
+  return commits.map((commit) => ({
+    sha: commit.sha,
+    message: commit.commit?.message ?? "",
+    author: commit.commit?.author?.name ?? commit.author?.login ?? null,
+    committedAt:
+      commit.commit?.committer?.date ?? commit.commit?.author?.date ?? "",
+    url: commit.html_url
+  }));
+}
+
+export async function createGithubWebhook(
+  accessToken: string,
+  repositoryUrl: string,
+  webhookUrl: string,
+  secret: string
+): Promise<{ id: number }> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/hooks`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name: "web",
+        active: true,
+        events: ["push"],
+        config: {
+          url: webhookUrl,
+          content_type: "json",
+          secret
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    throw ApiError.internal(
+      "Failed to create GitHub webhook",
+      "GITHUB_WEBHOOK_CREATE_FAILED"
+    );
+  }
+
+  const hook = (await response.json()) as { id: number };
+
+  return { id: hook.id };
+}
+
+export async function deleteGithubWebhook(
+  accessToken: string,
+  repositoryUrl: string,
+  webhookId: number
+): Promise<void> {
+  const { owner, repo } = parseGithubRepository(repositoryUrl);
+
+  const response = await fetch(
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/hooks/${webhookId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/vnd.github+json",
+        "User-Agent": "codesense"
+      }
+    }
+  );
+
+  if (!response.ok && response.status !== 404) {
+    throw ApiError.internal(
+      "Failed to delete GitHub webhook",
+      "GITHUB_WEBHOOK_DELETE_FAILED"
+    );
+  }
+}
+
+export function verifyGithubWebhookSignature(
+  rawBody: Buffer,
+  signature: string,
+  secret: string
+): boolean {
+  if (!secret || !signature) {
+    return false;
+  }
+
+  const expected = `sha256=${crypto
+    .createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex")}`;
+  const expectedBuffer = Buffer.from(expected);
+  const signatureBuffer = Buffer.from(signature);
+
+  return (
+    expectedBuffer.length === signatureBuffer.length &&
+    crypto.timingSafeEqual(expectedBuffer, signatureBuffer)
+  );
 }
 
 export async function completeAuthorization(

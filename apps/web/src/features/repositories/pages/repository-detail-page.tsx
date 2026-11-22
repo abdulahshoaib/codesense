@@ -20,6 +20,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FullPageSpinner } from "@/components/ui/spinner";
 import { RepositoryForm } from "@/features/repositories/components/repository-form";
+import { RepositoryInsightPanel } from "@/features/repositories/components/repository-insight-panel";
 import {
   useDeleteRepository,
   useRepository,
@@ -182,6 +183,11 @@ export function RepositoryDetailPage(): React.ReactElement {
           <RepositoryDetails repository={repository} />
         </CardContent>
       </Card>
+
+      <RepositoryInsightPanel
+        repositoryId={repository.id}
+        provider={repository.provider}
+      />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">

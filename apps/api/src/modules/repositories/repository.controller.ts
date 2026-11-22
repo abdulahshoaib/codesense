@@ -6,6 +6,7 @@ import type { Request, Response } from "express";
 
 import { asyncHandler } from "../../utils/async-handler.js";
 import { successResponse } from "../../utils/response.js";
+import { repositoryInsightService } from "./repository-insight.service.js";
 import { repositoryService } from "./repository.service.js";
 
 const create = asyncHandler(async (req: Request, res: Response) => {
@@ -56,11 +57,33 @@ const listBranches = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(successResponse(branches, "Branches retrieved"));
 });
 
+const getInsight = asyncHandler(async (req: Request, res: Response) => {
+  const insight = await repositoryInsightService.getInsight(
+    req.user!.id,
+    req.params.id as string
+  );
+  res.status(200).json(successResponse(insight, "Project context retrieved"));
+});
+
+const refreshInsight = asyncHandler(async (req: Request, res: Response) => {
+  await repositoryInsightService.refreshGithubData(
+    req.user!.id,
+    req.params.id as string
+  );
+  const insight = await repositoryInsightService.getInsight(
+    req.user!.id,
+    req.params.id as string
+  );
+  res.status(200).json(successResponse(insight, "Project context refreshed"));
+});
+
 export const repositoryController = {
   create,
   list,
   getOne,
   update,
   remove,
-  listBranches
+  listBranches,
+  getInsight,
+  refreshInsight
 };

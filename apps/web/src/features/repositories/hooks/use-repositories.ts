@@ -1,6 +1,7 @@
 import type {
   BranchDTO,
   CreateRepositoryInput,
+  ProjectContextDTO,
   UpdateRepositoryInput
 } from "@codesense/shared";
 import {
@@ -39,6 +40,34 @@ export function useBranches(
     queryKey: queryKeys.repositories.branches(repositoryId ?? ""),
     queryFn: () => repositoryService.listBranches(repositoryId as string),
     enabled: Boolean(repositoryId)
+  });
+}
+
+export function useRepositoryInsight(
+  id: string | undefined
+): UseQueryResult<ProjectContextDTO, Error> {
+  return useQuery({
+    queryKey: queryKeys.repositories.insight(id ?? ""),
+    queryFn: () => repositoryService.getInsight(id as string),
+    enabled: Boolean(id)
+  });
+}
+
+export function useRefreshRepositoryInsight(): UseMutationResult<
+  ProjectContextDTO,
+  Error,
+  string
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => repositoryService.refreshInsight(id),
+    onSuccess: (data) => {
+      queryClient.setQueryData(
+        queryKeys.repositories.insight(data.repositoryId),
+        data
+      );
+    }
   });
 }
 
