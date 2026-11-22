@@ -196,6 +196,7 @@ reflect. Outputs are truncated rather than dumped unbounded.
 | `get_scan` | `scanId` | One owned scan | 40 dependencies, 4k AI summary |
 | `trigger_scan` | `repositoryId`, optional `branch` | Queued scan (same in-process pipeline as the web app) | — |
 | `get_project_info` | `repositoryId`, optional `branch`, `commit` | Package manager, scripts, entry points, frameworks, config files, README excerpt | 4k README |
+| `get_dependencies` | `repositoryId`, optional `branch`, `commit`, `ref`, `workspace` | Per-manifest dependencies (package.json including apps/* and packages/* workspaces, requirements.txt, pyproject.toml, go.mod, Cargo.toml, pom.xml, build.gradle). npm groups include peer/optional; workspace packages are marked internal; lockfile resolved versions when present; totals | 20 manifests, 40 entries per group |
 
 File tools clone the requested commit into a tmp cache (`$TMPDIR/codesense-mcp`,
 TTL 30 minutes, max 16 checkouts). Overview/scan tools read stored scan documents

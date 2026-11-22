@@ -18,6 +18,10 @@ import {
   readRepositoryFile,
   searchRepositoryCode
 } from "./content.js";
+import {
+  collectDependencies,
+  dependenciesFromScan
+} from "./dependencies.js";
 import { runTool } from "./result.js";
 import { resolveHeadCommit, resolveSnapshot } from "./snapshot.js";
 
@@ -40,8 +44,38 @@ const repoRefSchema = z.object({
     .min(4)
     .max(64)
     .optional()
-    .describe("Commit SHA the answer should reflect. Defaults to the branch head.")
+    .describe("Commit SHA the answer should reflect. Defaults to the branch head."),
+  ref: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .describe(
+      "Branch name or commit SHA. Used when branch/commit are omitted. Defaults to the repository default branch."
+    )
 });
+
+const SHA_REF = /^[0-9a-f]{7,64}$/i;
+
+function resolveRepoRef(input: {
+  branch?: string;
+  commit?: string;
+  ref?: string;
+}): { branch?: string; commit?: string } {
+  let branch = input.branch;
+  let commit = input.commit;
+
+  if (input.ref) {
+    if (SHA_REF.test(input.ref)) {
+      commit = commit ?? input.ref;
+    } else {
+      branch = branch ?? input.ref;
+    }
+  }
+
+  return { branch, commit };
+}
 
 function capText(value: string | undefined, max: number): string | undefined {
   if (!value) {
@@ -87,9 +121,10 @@ export async function handleGetRepositoryOverview(
     userId,
     input.repositoryId
   );
-  const branch = input.branch ?? repository.defaultBranch;
+  const ref = resolveRepoRef(input);
+  const branch = ref.branch ?? repository.defaultBranch;
   const headCommit =
-    input.commit ?? (await resolveHeadCommit(userId, input.repositoryId, branch));
+    ref.commit ?? (await resolveHeadCommit(userId, input.repositoryId, branch));
   const latestScan = await scanService.getLatestScanForRepository(
     userId,
     input.repositoryId
@@ -133,7 +168,7 @@ export async function handleGetFileTree(
   userId: string,
   input: z.infer<typeof repoRefSchema>
 ): Promise<unknown> {
-  const snapshot = await resolveSnapshot(userId, input.repositoryId, input);
+  const snapshot = await resolveSnapshot(userId, input.repositoryId, resolveRepoRef(input));
   return listFileTree(snapshot.rootDir, {
     commitHash: snapshot.commitHash,
     branch: snapshot.branch
@@ -144,7 +179,7 @@ export async function handleReadFile(
   userId: string,
   input: z.infer<typeof repoRefSchema> & { path: string }
 ): Promise<unknown> {
-  const snapshot = await resolveSnapshot(userId, input.repositoryId, input);
+  const snapshot = await resolveSnapshot(userId, input.repositoryId, resolveRepoRef(input));
   return readRepositoryFile(snapshot.rootDir, input.path, {
     commitHash: snapshot.commitHash,
     branch: snapshot.branch
@@ -159,7 +194,7 @@ export async function handleSearchCode(
     maxMatches?: number;
   }
 ): Promise<unknown> {
-  const snapshot = await resolveSnapshot(userId, input.repositoryId, input);
+  const snapshot = await resolveSnapshot(userId, input.repositoryId, resolveRepoRef(input));
   return searchRepositoryCode(snapshot.rootDir, input.query, {
     isRegex: input.isRegex === true,
     maxMatches: input.maxMatches,
@@ -300,11 +335,68 @@ export async function handleGetProjectInfo(
   userId: string,
   input: z.infer<typeof repoRefSchema>
 ): Promise<unknown> {
-  const snapshot = await resolveSnapshot(userId, input.repositoryId, input);
+  const snapshot = await resolveSnapshot(userId, input.repositoryId, {
+    ...resolveRepoRef(input)
+  });
   return inspectProject(snapshot.rootDir, {
     commitHash: snapshot.commitHash,
     branch: snapshot.branch
   });
+}
+
+export async function handleGetDependencies(
+  userId: string,
+  input: z.infer<typeof repoRefSchema> & { workspace?: string }
+): Promise<unknown> {
+  const repository = await repositoryService.getRepository(
+    userId,
+    input.repositoryId
+  );
+  const ref = resolveRepoRef(input);
+  const branch = ref.branch ?? repository.defaultBranch;
+  const workspace = input.workspace?.trim() || undefined;
+
+  if (!workspace) {
+    const scans = await scanService.listScansForRepository(
+      userId,
+      input.repositoryId
+    );
+    const matching = scans.find((scan) => {
+      if (scan.status !== "completed" || !scan.summary?.dependencies?.length) {
+        return false;
+      }
+      if (ref.commit) {
+        return Boolean(
+          scan.commitHash && scan.commitHash.startsWith(ref.commit)
+        );
+      }
+      return scan.branch === branch;
+    });
+
+    if (matching?.summary?.dependencies && matching.commitHash) {
+      return {
+        repositoryId: input.repositoryId,
+        ...dependenciesFromScan(matching.summary.dependencies, {
+          commitHash: matching.commitHash,
+          branch: matching.branch
+        })
+      };
+    }
+  }
+
+  const snapshot = await resolveSnapshot(userId, input.repositoryId, {
+    branch,
+    commit: ref.commit
+  });
+  const collected = await collectDependencies(snapshot.rootDir, {
+    commitHash: snapshot.commitHash,
+    branch: snapshot.branch
+  }, workspace);
+
+  return {
+    repositoryId: input.repositoryId,
+    ...collected
+  };
 }
 
 export function registerMcpTools(server: McpServer, userId: string): void {
@@ -548,5 +640,32 @@ export function registerMcpTools(server: McpServer, userId: string): void {
       }
     },
     async (args) => runTool(() => handleGetProjectInfo(userId, args))
+  );
+
+  server.registerTool(
+    "get_dependencies",
+    {
+      title: "Repository dependencies",
+      description:
+        `List declared dependencies per manifest (package.json at the root and in apps/* / packages/* workspaces, plus requirements.txt, pyproject.toml, go.mod, Cargo.toml, pom.xml, and build.gradle). Includes dependency/devDependency/peer/optional groups for npm, workspace packages marked internal, lockfile resolved versions when present, and totals. Uses a stored scan for the requested ref when it already has dependency data; otherwise reads the snapshot. Optional workspace filters to one package path. Capped at ${MCP_LIMITS.manifestsMax} manifests and ${MCP_LIMITS.dependenciesMax} entries per group. Output is JSON.`,
+      inputSchema: repoRefSchema.extend({
+        workspace: z
+          .string()
+          .trim()
+          .min(1)
+          .max(512)
+          .optional()
+          .describe(
+            "Optional package path filter, e.g. apps/api or packages/shared. Path traversal is rejected."
+          )
+      }),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true
+      }
+    },
+    async (args) => runTool(() => handleGetDependencies(userId, args))
   );
 }

@@ -173,9 +173,11 @@ describe("mcp http endpoint", () => {
         "list_scans",
         "get_scan",
         "trigger_scan",
-        "get_project_info"
+        "get_project_info",
+        "get_dependencies"
       ])
     );
+    expect(names).toHaveLength(12);
 
     const result = await client.callTool({
       name: "list_repositories",

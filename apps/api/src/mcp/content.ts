@@ -414,7 +414,7 @@ async function readOptionalFile(
   }
 }
 
-function detectPackageManager(rootFiles: Set<string>): string | null {
+export function detectPackageManager(rootFiles: Set<string>): string | null {
   if (rootFiles.has("pnpm-lock.yaml") || rootFiles.has("pnpm-workspace.yaml")) {
     return "pnpm";
   }

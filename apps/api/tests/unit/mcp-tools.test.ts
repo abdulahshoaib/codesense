@@ -55,6 +55,7 @@ vi.mock("../../src/services/git.service.js", () => ({
 }));
 
 const {
+  handleGetDependencies,
   handleGetFileTree,
   handleGetProjectInfo,
   handleGetRepositoryOverview,
@@ -89,6 +90,7 @@ describe("mcp tool handlers", () => {
   let rootDir = "";
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     rootDir = await mkdtemp(join(tmpdir(), "codesense-tools-"));
     await mkdir(join(rootDir, "src"), { recursive: true });
     await writeFile(join(rootDir, "src", "index.ts"), "export const value = 42;\n");
@@ -117,6 +119,7 @@ describe("mcp tool handlers", () => {
     ]);
     mocks.listLatestByRepository.mockResolvedValue(new Map());
     mocks.getLatestScanForRepository.mockResolvedValue(null);
+    mocks.listScansForRepository.mockResolvedValue([]);
   });
 
   afterEach(async () => {
@@ -305,5 +308,114 @@ describe("mcp tool handlers", () => {
     expect(info.commitHash).toBe("deadbeef");
     expect(info.packageManager).toBe("npm");
     expect(info.frameworks).toContain("React");
+  });
+
+  it("reads dependencies from the snapshot when no scan data exists", async () => {
+    const result = (await handleGetDependencies(ownerId, { repositoryId })) as {
+      source: string;
+      packageManager: string | null;
+      manifests: Array<{ path: string; dependencies: Array<{ name: string }> }>;
+      totals: { dependencies: number };
+    };
+
+    expect(mocks.getRepository).toHaveBeenCalledWith(ownerId, repositoryId);
+    expect(result.source).toBe("snapshot");
+    expect(result.packageManager).toBe("npm");
+    expect(result.manifests.some((item) => item.path === "package.json")).toBe(true);
+    expect(result.manifests[0]?.dependencies.some((item) => item.name === "react")).toBe(
+      true
+    );
+    expect(result.totals.dependencies).toBeGreaterThan(0);
+    expect(mocks.resolveSnapshot).toHaveBeenCalled();
+  });
+
+  it("prefers stored scan dependencies for the requested ref", async () => {
+    mocks.listScansForRepository.mockResolvedValue([
+      {
+        id: scanId,
+        status: "completed",
+        branch: "main",
+        commitHash: "deadbeef",
+        summary: {
+          files: 2,
+          linesOfCode: 10,
+          languages: [],
+          dependencies: [{ ecosystem: "npm", name: "express", version: "5.1.0" }]
+        }
+      }
+    ]);
+
+    const result = (await handleGetDependencies(ownerId, { repositoryId })) as {
+      source: string;
+      commitHash: string;
+      manifests: Array<{ path: string; dependencies: Array<{ name: string }> }>;
+    };
+
+    expect(result.source).toBe("scan");
+    expect(result.commitHash).toBe("deadbeef");
+    expect(result.manifests[0]?.path).toBe("(scan)");
+    expect(result.manifests[0]?.dependencies[0]?.name).toBe("express");
+    expect(mocks.resolveSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("reads the snapshot when a workspace filter is set even if a scan exists", async () => {
+    mocks.listScansForRepository.mockResolvedValue([
+      {
+        id: scanId,
+        status: "completed",
+        branch: "main",
+        commitHash: "deadbeef",
+        summary: {
+          files: 1,
+          linesOfCode: 1,
+          languages: [],
+          dependencies: [{ ecosystem: "npm", name: "express" }]
+        }
+      }
+    ]);
+    await mkdir(join(rootDir, "apps", "api"), { recursive: true });
+    await writeFile(
+      join(rootDir, "apps", "api", "package.json"),
+      JSON.stringify({
+        name: "@codesense/api",
+        dependencies: { express: "^5.0.0" }
+      })
+    );
+
+    const result = (await handleGetDependencies(ownerId, {
+      repositoryId,
+      workspace: "apps/api"
+    })) as {
+      source: string;
+      workspace: string | null;
+      manifests: Array<{ path: string }>;
+    };
+
+    expect(result.source).toBe("snapshot");
+    expect(result.workspace).toBe("apps/api");
+    expect(result.manifests.every((item) => item.path.startsWith("apps/api/"))).toBe(
+      true
+    );
+    expect(mocks.resolveSnapshot).toHaveBeenCalled();
+  });
+
+  it("rejects get_dependencies for another user's repository", async () => {
+    mocks.getRepository.mockRejectedValue(
+      ApiError.notFound("Repository not found", "REPOSITORY_NOT_FOUND")
+    );
+
+    await expect(
+      handleGetDependencies(otherUserId, { repositoryId })
+    ).rejects.toMatchObject({ code: "REPOSITORY_NOT_FOUND" });
+    expect(mocks.resolveSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("resolves ref as a branch when it is not a commit SHA", async () => {
+    await handleGetDependencies(ownerId, { repositoryId, ref: "release" });
+
+    expect(mocks.resolveSnapshot).toHaveBeenCalledWith(ownerId, repositoryId, {
+      branch: "release",
+      commit: undefined
+    });
   });
 });

@@ -9,6 +9,8 @@ export const MCP_LIMITS = {
   commitsMax: 20,
   scansMax: 25,
   dependenciesMax: 40,
+  manifestsMax: 20,
+  lockfileMaxBytes: 2_000_000,
   readmeMaxChars: 4_000,
   aiSummaryMaxChars: 4_000,
   outputMaxChars: 24_000,
