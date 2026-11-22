@@ -1,6 +1,7 @@
 import type {
   DependencySummary,
   LanguageSummary,
+  LlmProvider,
   ScanDTO,
   ScanStatus,
   ScanSummary
@@ -20,12 +21,17 @@ export interface ScanDocument {
   error?: string;
   summary?: ScanSummary;
   aiSummary?: string;
+  llmProvider?: string;
+  llmModel?: string;
+  llmFallbackUsed?: boolean;
+  aiError?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateScanData {
   branch: string;
+  llm?: { provider: LlmProvider; modelId: string };
 }
 
 export function toScanDTO(scan: ScanDocument): ScanDTO {
@@ -69,6 +75,14 @@ export function toScanDTO(scan: ScanDocument): ScanDTO {
         }
       : {}),
     ...(scan.aiSummary !== undefined ? { aiSummary: scan.aiSummary } : {}),
+    ...(scan.llmProvider !== undefined
+      ? { llmProvider: scan.llmProvider }
+      : {}),
+    ...(scan.llmModel !== undefined ? { llmModel: scan.llmModel } : {}),
+    ...(scan.llmFallbackUsed !== undefined
+      ? { llmFallbackUsed: scan.llmFallbackUsed }
+      : {}),
+    ...(scan.aiError !== undefined ? { aiError: scan.aiError } : {}),
     createdAt: scan.createdAt.toISOString(),
     updatedAt: scan.updatedAt.toISOString()
   };

@@ -77,6 +77,20 @@ const scanSchema = new Schema<ScanDocument>(
     },
     aiSummary: {
       type: String
+    },
+    llmProvider: {
+      type: String,
+      trim: true
+    },
+    llmModel: {
+      type: String,
+      trim: true
+    },
+    llmFallbackUsed: {
+      type: Boolean
+    },
+    aiError: {
+      type: String
     }
   },
   {

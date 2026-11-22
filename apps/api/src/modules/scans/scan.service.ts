@@ -23,7 +23,10 @@ async function createScan(
     repositoryId: toObjectId(repositoryId),
     ownerId: toObjectId(ownerId),
     branch: data.branch,
-    status: "queued"
+    status: "queued",
+    ...(data.llm
+      ? { llmProvider: data.llm.provider, llmModel: data.llm.modelId }
+      : {})
   });
 
   const scanId = scan._id.toString();

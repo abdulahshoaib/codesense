@@ -2,14 +2,16 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import type { LlmProvider } from "@codesense/shared";
+
 import { logger } from "../../config/logger.js";
 import { analyzeDirectory } from "../../services/analysis.service.js";
-import { summarizeCodebase } from "../../services/ai.service.js";
 import { cloneBranch } from "../../services/git.service.js";
 import {
   buildGithubCloneUrl,
   getGithubAccessToken
 } from "../github/github.service.js";
+import { llmService, type CodebaseSummaryResult } from "../llm/llm.service.js";
 import { Repository } from "../repositories/repository.model.js";
 import { Scan } from "./scan.model.js";
 
@@ -72,24 +74,43 @@ export async function executeScan(scanId: string): Promise<void> {
       );
       const summary = await analyzeDirectory(join(workDir, "repo"));
 
-      const aiSummary = await summarizeCodebase({
-        repositoryName: repository.name,
-        branch: scan.branch,
-        files: summary.files,
-        linesOfCode: summary.linesOfCode,
-        languages: summary.languages,
-        dependencies: summary.dependencies
-      }).catch((error) => {
+      let llm: CodebaseSummaryResult | null = null;
+
+      try {
+        llm = await llmService.summarizeCodebaseForScan(
+          scan.ownerId.toString(),
+          {
+            provider: scan.llmProvider as LlmProvider | undefined,
+            modelId: scan.llmModel
+          },
+          {
+            repositoryName: repository.name,
+            branch: scan.branch,
+            files: summary.files,
+            linesOfCode: summary.linesOfCode,
+            languages: summary.languages,
+            dependencies: summary.dependencies
+          }
+        );
+      } catch (error) {
         logger.warn({ error, scanId }, "AI codebase summary skipped");
-        return null;
-      });
+        llm = null;
+      }
 
       await Scan.findByIdAndUpdate(scanId, {
         status: "completed",
         commitHash: checkout.commitHash,
         committedAt: new Date(checkout.committedAt),
         summary,
-        ...(aiSummary ? { aiSummary } : {}),
+        ...(llm?.aiSummary ? { aiSummary: llm.aiSummary } : {}),
+        ...(llm
+          ? {
+              llmProvider: llm.provider,
+              llmModel: llm.modelId,
+              llmFallbackUsed: llm.fallbackUsed
+            }
+          : {}),
+        ...(llm?.aiError ? { aiError: llm.aiError } : {}),
         completedAt: new Date()
       }).exec();
     } finally {
