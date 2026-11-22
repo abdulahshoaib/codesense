@@ -62,5 +62,5 @@ pnpm --filter @codesense/web build
 
 ## Documentation
 
-- [apps/api/README.md](./apps/api/README.md) — REST API, database models, authentication
+- [apps/api/README.md](./apps/api/README.md) — REST API, MCP server, database models, authentication
 - [apps/web/README.md](./apps/web/README.md) — web client, routing, theming
