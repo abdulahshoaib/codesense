@@ -65,6 +65,14 @@ const getInsight = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json(successResponse(insight, "Project context retrieved"));
 });
 
+const listCommits = asyncHandler(async (req: Request, res: Response) => {
+  const commits = await repositoryInsightService.listCommits(
+    req.user!.id,
+    req.params.id as string
+  );
+  res.status(200).json(successResponse(commits, "Commits retrieved"));
+});
+
 const refreshInsight = asyncHandler(async (req: Request, res: Response) => {
   await repositoryInsightService.refreshGithubData(
     req.user!.id,
@@ -85,5 +93,6 @@ export const repositoryController = {
   remove,
   listBranches,
   getInsight,
+  listCommits,
   refreshInsight
 };

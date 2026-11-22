@@ -52,7 +52,14 @@ export function toProjectContextDTO(
       : {}),
     issues: document.issues ?? [],
     pullRequests: document.pullRequests ?? [],
-    commits: document.commits ?? [],
+    commits: (document.commits ?? []).map((commit) => ({
+      sha: commit.sha,
+      message: commit.message,
+      author: commit.author ?? null,
+      committedAt: commit.committedAt,
+      url: commit.url,
+      parents: commit.parents ?? []
+    })),
     createdAt: document.createdAt.toISOString(),
     updatedAt: document.updatedAt.toISOString()
   };

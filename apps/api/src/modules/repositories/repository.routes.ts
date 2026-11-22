@@ -28,6 +28,12 @@ router.get(
 );
 
 router.get(
+  "/:id/commits",
+  validate({ params: repositoryIdParamSchema }),
+  repositoryController.listCommits
+);
+
+router.get(
   "/:id/insight",
   validate({ params: repositoryIdParamSchema }),
   repositoryController.getInsight

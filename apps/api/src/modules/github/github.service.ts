@@ -229,7 +229,7 @@ export async function listGithubIssues(
   const { owner, repo } = parseGithubRepository(repositoryUrl);
 
   const response = await fetch(
-    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/issues?state=all&per_page=50&sort=created&direction=desc`,
+    `${env.GITHUB_API_URL}/repos/${owner}/${repo}/issues?state=open&per_page=50&sort=created&direction=desc`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -335,7 +335,10 @@ export async function listGithubCommits(
     author: commit.commit?.author?.name ?? commit.author?.login ?? null,
     committedAt:
       commit.commit?.committer?.date ?? commit.commit?.author?.date ?? "",
-    url: commit.html_url
+    url: commit.html_url,
+    parents: (commit.parents ?? [])
+      .map((parent) => parent.sha)
+      .filter((sha): sha is string => Boolean(sha))
   }));
 }
 

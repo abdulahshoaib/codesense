@@ -1,4 +1,5 @@
 import type {
+  CommitHistoryDTO,
   ProjectContextDTO,
   RepositoryIssueDTO,
   RepositoryPullRequestDTO
@@ -135,10 +136,9 @@ export async function refreshGithubData(
 
   const accessToken = await getGithubAccessToken(ownerId);
 
-  const [issues, pullRequests, commits] = await Promise.all([
+  const [issues, pullRequests] = await Promise.all([
     listGithubIssues(accessToken, repository.url),
-    listGithubPullRequests(accessToken, repository.url),
-    listGithubCommits(accessToken, repository.url, repository.defaultBranch)
+    listGithubPullRequests(accessToken, repository.url)
   ]);
 
   const [summarizedIssues, summarizedPullRequests] = await Promise.all([
@@ -158,8 +158,7 @@ export async function refreshGithubData(
     {
       $set: {
         issues: summarizedIssues,
-        pullRequests: summarizedPullRequests,
-        commits
+        pullRequests: summarizedPullRequests
       },
       $setOnInsert: { context: "" }
     },
@@ -172,8 +171,34 @@ export async function refreshGithubData(
   ).exec();
 }
 
+export async function listCommits(
+  ownerId: string,
+  repositoryId: string
+): Promise<CommitHistoryDTO[]> {
+  const repository = await repositoryService.getOwnedRepository(
+    ownerId,
+    repositoryId
+  );
+
+  if (repository.provider !== "github") {
+    throw ApiError.badRequest(
+      "Commit history is only available for GitHub repositories",
+      "GITHUB_INSIGHT_UNSUPPORTED"
+    );
+  }
+
+  const accessToken = await getGithubAccessToken(ownerId);
+
+  return listGithubCommits(
+    accessToken,
+    repository.url,
+    repository.defaultBranch
+  );
+}
+
 export const repositoryInsightService = {
   getInsight,
   updateContext,
-  refreshGithubData
+  refreshGithubData,
+  listCommits
 };

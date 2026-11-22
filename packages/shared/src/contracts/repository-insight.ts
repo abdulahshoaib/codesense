@@ -29,6 +29,7 @@ export interface CommitHistoryDTO {
   author: string | null;
   committedAt: string;
   url: string;
+  parents: string[];
 }
 
 export interface ProjectContextDTO {

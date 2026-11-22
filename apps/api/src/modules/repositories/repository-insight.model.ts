@@ -40,7 +40,8 @@ const commitSchema = new Schema(
     message: { type: String, required: true },
     author: { type: String, default: null },
     committedAt: { type: String, required: true },
-    url: { type: String, required: true }
+    url: { type: String, required: true },
+    parents: { type: [String], default: [] }
   },
   { _id: false }
 );
@@ -59,7 +60,8 @@ const projectContextSchema = new Schema<ProjectContextDocument>(
       required: true,
       index: true
     },
-    context: { type: String, required: true, default: "" },
+    // Empty is valid until a scan writes a summary. required rejects "".
+    context: { type: String, default: "" },
     lastCommitHash: { type: String },
     issues: { type: [issueSchema], default: [] },
     pullRequests: { type: [pullRequestSchema], default: [] },

@@ -56,6 +56,7 @@ export interface GithubCommit {
   sha: string;
   html_url: string;
   author: { login: string } | null;
+  parents?: Array<{ sha?: string }> | null;
   commit: {
     message: string;
     author: { name: string; date: string } | null;
