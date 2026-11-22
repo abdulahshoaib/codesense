@@ -5,6 +5,9 @@ export const queryKeys = {
   github: {
     repositories: () => ["github", "repositories"] as const
   },
+  llm: {
+    models: () => ["llm", "models"] as const
+  },
   repositories: {
     all: () => ["repositories"] as const,
     list: () => ["repositories", "list"] as const,

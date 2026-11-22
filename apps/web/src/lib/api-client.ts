@@ -120,6 +120,9 @@ export const apiClient = {
   ): Promise<T> {
     return request<T>({ ...config, url, method: "PATCH", data });
   },
+  put<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return request<T>({ ...config, url, method: "PUT", data });
+  },
   delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return request<T>({ ...config, url, method: "DELETE" });
   }

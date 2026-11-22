@@ -12,6 +12,12 @@ export type {
   GitHubConnection,
   GithubRepositoryDTO,
   LanguageSummary,
+  LlmKeyStatus,
+  LlmModel,
+  LlmModelsResponse,
+  LlmPreference,
+  LlmProvider,
+  LlmSelection,
   LoginInput,
   PublicUser,
   RegisterInput,
@@ -20,5 +26,7 @@ export type {
   ScanDTO,
   ScanStatus,
   ScanSummary,
+  SetLlmKeyInput,
+  UpdateLlmPreferenceInput,
   UpdateRepositoryInput
 } from "@codesense/shared";

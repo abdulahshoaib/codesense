@@ -141,11 +141,31 @@ export function ScanDetailPage(): React.ReactElement {
               </dt>
               <dd className="font-mono text-xs">{scan.id}</dd>
             </div>
+            {scan.llmProvider && scan.llmModel ? (
+              <div className="flex flex-col gap-1">
+                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  AI model
+                </dt>
+                <dd className="flex flex-wrap items-center gap-2 text-sm">
+                  {scan.llmProvider === "groq" ? "Groq" : "OpenRouter"} /{" "}
+                  {scan.llmModel}
+                  {scan.llmFallbackUsed ? (
+                    <Badge variant="warning">Fallback used</Badge>
+                  ) : null}
+                </dd>
+              </div>
+            ) : null}
           </dl>
 
           {scan.error ? (
             <Alert variant="destructive" title="Error details" className="mt-3">
               {scan.error}
+            </Alert>
+          ) : null}
+
+          {scan.aiError ? (
+            <Alert variant="warning" title="AI summary unavailable" className="mt-3">
+              {scan.aiError}
             </Alert>
           ) : null}
         </CardContent>

@@ -1,5 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { AccountSection } from "@/features/settings/components/account-section";
+import { AiModelSection } from "@/features/settings/components/ai-model-section";
 import { AppearanceSection } from "@/features/settings/components/appearance-section";
 import { GitHubSection } from "@/features/settings/components/github-section";
 import { ProfileSection } from "@/features/settings/components/profile-section";
@@ -16,6 +17,7 @@ export function SettingsPage(): React.ReactElement {
         <div className="flex flex-col gap-6 lg:col-span-2">
           <ProfileSection />
           <GitHubSection />
+          <AiModelSection />
         </div>
 
         <div className="flex flex-col gap-6">

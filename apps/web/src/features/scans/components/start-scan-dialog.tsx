@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { CreateScanInput, RepositoryDTO } from "@codesense/shared";
+import type { CreateScanInput, LlmProvider, RepositoryDTO } from "@codesense/shared";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,28 @@ import {
   scanFormSchema,
   type ScanFormValues
 } from "@/features/scans/schemas/scan.schemas";
+import { useLlmModels } from "@/features/settings/hooks/use-llm";
 import { getErrorMessage } from "@/lib/api-client";
+
+function toLlmValue(provider: LlmProvider, modelId: string): string {
+  return `${provider}:${modelId}`;
+}
+
+function parseLlmValue(
+  value: string
+): { provider: LlmProvider; modelId: string } | null {
+  const [provider, modelId] = value.split(":");
+
+  if (
+    (provider === "groq" || provider === "openrouter") &&
+    modelId &&
+    modelId.length > 0
+  ) {
+    return { provider, modelId };
+  }
+
+  return null;
+}
 
 export interface StartScanDialogProps {
   open: boolean;
@@ -38,6 +59,10 @@ export function StartScanDialog({
     fixedRepositoryId ?? repositories[0]?.id ?? ""
   );
   const [repositoryError, setRepositoryError] = useState<string | null>(null);
+
+  const llmModelsQuery = useLlmModels();
+  const models = llmModelsQuery.data?.models ?? [];
+  const [llmValue, setLlmValue] = useState("");
 
   const branchesQuery = useBranches(repositoryId || undefined);
   const branches = branchesQuery.data ?? [];
@@ -72,6 +97,22 @@ export function StartScanDialog({
     setValue("branch", preferred, { shouldValidate: false });
   }, [open, defaultBranch, repositoryId, branches, setValue]);
 
+  useEffect(() => {
+    const data = llmModelsQuery.data;
+
+    if (!data) {
+      return;
+    }
+
+    const defaultModel =
+      data.models.find((model) => model.default === true) ?? data.models[0];
+    const initial = data.preference ?? defaultModel;
+
+    if (initial) {
+      setLlmValue(toLlmValue(initial.provider, initial.modelId));
+    }
+  }, [llmModelsQuery.data]);
+
   const onSubmit = handleSubmit(async (values) => {
     if (!repositoryId) {
       setRepositoryError("Select a repository");
@@ -79,7 +120,11 @@ export function StartScanDialog({
     }
 
     setRepositoryError(null);
-    const payload: CreateScanInput = { branch: values.branch };
+    const llm = parseLlmValue(llmValue);
+    const payload: CreateScanInput = {
+      branch: values.branch,
+      ...(llm ? { llm } : {})
+    };
 
     try {
       const scan = await createScan.mutateAsync({ repositoryId, input: payload });
@@ -175,6 +220,45 @@ export function StartScanDialog({
               </Select>
             )}
           />
+        </FormField>
+
+        <FormField
+          id="scan-llm"
+          label="AI model"
+          hint="Optional. Defaults to your saved preference."
+        >
+          <Select
+            id="scan-llm"
+            value={llmValue}
+            onChange={(event) => setLlmValue(event.target.value)}
+            disabled={models.length === 0}
+          >
+            {(["groq", "openrouter"] as LlmProvider[]).map((provider) => {
+              const providerModels = models.filter(
+                (model) => model.provider === provider
+              );
+
+              if (providerModels.length === 0) {
+                return null;
+              }
+
+              return (
+                <optgroup
+                  key={provider}
+                  label={provider === "groq" ? "Groq" : "OpenRouter"}
+                >
+                  {providerModels.map((model) => (
+                    <option
+                      key={model.modelId}
+                      value={toLlmValue(model.provider, model.modelId)}
+                    >
+                      {model.label}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            })}
+          </Select>
         </FormField>
 
         <div className="flex justify-end gap-2">
