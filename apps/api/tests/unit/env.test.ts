@@ -65,6 +65,7 @@ describe("environment validation", () => {
     expect(env.GROQ_API_KEY).toBe("");
     expect(env.OPENROUTER_API_KEY).toBe("");
     expect(env.LLM_FALLBACK_ORDER).toBe("groq,openrouter");
+    expect(env.MCP_PUBLIC_URL).toBe("");
   });
 
   it("warns once when legacy AI_* variables are present", () => {

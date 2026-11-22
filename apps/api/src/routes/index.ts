@@ -6,6 +6,7 @@ import { githubWebhookRoutes } from "../modules/github/github-webhook.routes.js"
 import llmRoutes, {
   userLlmRoutes
 } from "../modules/llm/llm.routes.js";
+import mcpTokenRoutes from "../modules/mcp-tokens/mcp-token.routes.js";
 import repositoryRoutes from "../modules/repositories/repository.routes.js";
 import scanRoutes, {
   scanRepositoryRoutes
@@ -24,6 +25,7 @@ apiRouter.use("/github", githubWebhookRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/llm", llmRoutes);
 apiRouter.use("/users/me/llm", userLlmRoutes);
+apiRouter.use("/users/me/mcp", mcpTokenRoutes);
 apiRouter.use("/users", userRoutes);
 apiRouter.use("/repositories", repositoryRoutes);
 apiRouter.use("/repositories/:repositoryId/scans", scanRepositoryRoutes);
