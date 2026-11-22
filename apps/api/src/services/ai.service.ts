@@ -97,7 +97,7 @@ export async function summarizeCodebase(
     modelId: input.modelId,
     apiKey: input.apiKey,
     system:
-      "You are a code intelligence assistant. Given a summary of a codebase and representative source excerpts, produce a concise architecture overview covering what is implemented, structure, notable technologies, future scope, and any risks or observations.",
+      "You are a code intelligence assistant. From the codebase summary and source excerpts, write exactly two short sections. Use these headings on their own lines: \"Current implementation\" then \"Future\". Current implementation says what the code does today. Future gives practical suggestions for what to build or improve next. Do not invent behavior the excerpts do not support.",
     user: buildPrompt(input)
   });
 }

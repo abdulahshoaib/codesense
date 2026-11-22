@@ -19,11 +19,18 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FullPageSpinner } from "@/components/ui/spinner";
+import { Tabs } from "@/components/ui/tabs";
 import { RepositoryForm } from "@/features/repositories/components/repository-form";
-import { RepositoryInsightPanel } from "@/features/repositories/components/repository-insight-panel";
+import {
+  RepositoryActivity,
+  RepositoryInsightPanel,
+  type RepositoryActivitySection
+} from "@/features/repositories/components/repository-insight-panel";
 import {
   useDeleteRepository,
   useRepository,
+  useRepositoryCommits,
+  useRepositoryInsight,
   useUpdateRepository
 } from "@/features/repositories/hooks/use-repositories";
 import type { RepositoryFormValues } from "@/features/repositories/schemas/repository.schemas";
@@ -32,6 +39,8 @@ import { StartScanDialog } from "@/features/scans/components/start-scan-dialog";
 import { useRepositoryScans } from "@/features/scans/hooks/use-scans";
 import { getErrorMessage } from "@/lib/api-client";
 import { formatDate, formatDateTime } from "@/lib/format";
+
+type DetailSection = "context" | RepositoryActivitySection;
 
 interface DetailItemProps {
   label: string;
@@ -91,6 +100,10 @@ export function RepositoryDetailPage(): React.ReactElement {
   const navigate = useNavigate();
 
   const repositoryQuery = useRepository(id);
+  const insightQuery = useRepositoryInsight(id);
+  const commitsQuery = useRepositoryCommits(
+    repositoryQuery.data?.provider === "github" ? id : undefined
+  );
   const scansQuery = useRepositoryScans(id);
   const updateRepository = useUpdateRepository();
   const deleteRepository = useDeleteRepository();
@@ -98,6 +111,7 @@ export function RepositoryDetailPage(): React.ReactElement {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isScanOpen, setIsScanOpen] = useState(false);
+  const [section, setSection] = useState<DetailSection>("context");
 
   if (repositoryQuery.isLoading) {
     return <FullPageSpinner label="Loading repository" />;
@@ -119,6 +133,10 @@ export function RepositoryDetailPage(): React.ReactElement {
 
   const repository = repositoryQuery.data;
   const scans = scansQuery.data ?? [];
+  const openIssueCount =
+    insightQuery.data?.issues.filter((issue) => issue.state === "open")
+      .length ?? 0;
+  const showingContext = repository.provider !== "github" || section === "context";
 
   const handleUpdate = (values: RepositoryFormValues): void => {
     updateRepository.mutate(
@@ -184,49 +202,74 @@ export function RepositoryDetailPage(): React.ReactElement {
         </CardContent>
       </Card>
 
-      <RepositoryInsightPanel
-        repositoryId={repository.id}
-        provider={repository.provider}
-      />
+      {repository.provider === "github" ? (
+        <Tabs
+          items={[
+            { value: "context", label: "Project context" },
+            { value: "issues", label: `Issues (${openIssueCount})` },
+            {
+              value: "pulls",
+              label: `Pull requests (${insightQuery.data?.pullRequests.length ?? 0})`
+            },
+            {
+              value: "history",
+              label: `History (${commitsQuery.data?.length ?? 0})`
+            }
+          ]}
+          value={section}
+          onValueChange={(value) => setSection(value as DetailSection)}
+        />
+      ) : null}
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <div className="flex flex-col gap-0.5">
-            <CardTitle>Scan history</CardTitle>
-            <CardDescription>
-              Scan records created for this repository.
-            </CardDescription>
-          </div>
-          <Button size="sm" onClick={() => setIsScanOpen(true)}>
-            <Play aria-hidden="true" />
-            Start scan
-          </Button>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          {scansQuery.isLoading ? (
-            <TableSkeleton columns={5} />
-          ) : scansQuery.isError ? (
-            <ErrorState
-              message={getErrorMessage(scansQuery.error)}
-              onRetry={() => void scansQuery.refetch()}
-            />
-          ) : scans.length === 0 ? (
-            <EmptyState
-              icon={ScanSearch}
-              title="No scans yet"
-              description="Queue a scan to analyze this repository's latest commit."
-              action={
-                <Button onClick={() => setIsScanOpen(true)}>
-                  <Play aria-hidden="true" />
-                  Start scan
-                </Button>
-              }
-            />
-          ) : (
-            <ScanTable scans={scans} />
-          )}
-        </CardContent>
-      </Card>
+      {showingContext ? (
+        <RepositoryInsightPanel repositoryId={repository.id} />
+      ) : (
+        <RepositoryActivity
+          repositoryId={repository.id}
+          section={section as RepositoryActivitySection}
+        />
+      )}
+
+      {showingContext ? (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between">
+            <div className="flex flex-col gap-0.5">
+              <CardTitle>Scan history</CardTitle>
+              <CardDescription>
+                Scan records created for this repository.
+              </CardDescription>
+            </div>
+            <Button size="sm" onClick={() => setIsScanOpen(true)}>
+              <Play aria-hidden="true" />
+              Start scan
+            </Button>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            {scansQuery.isLoading ? (
+              <TableSkeleton columns={5} />
+            ) : scansQuery.isError ? (
+              <ErrorState
+                message={getErrorMessage(scansQuery.error)}
+                onRetry={() => void scansQuery.refetch()}
+              />
+            ) : scans.length === 0 ? (
+              <EmptyState
+                icon={ScanSearch}
+                title="No scans yet"
+                description="Queue a scan to analyze this repository's latest commit."
+                action={
+                  <Button onClick={() => setIsScanOpen(true)}>
+                    <Play aria-hidden="true" />
+                    Start scan
+                  </Button>
+                }
+              />
+            ) : (
+              <ScanTable scans={scans} />
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Dialog
         open={isEditing}

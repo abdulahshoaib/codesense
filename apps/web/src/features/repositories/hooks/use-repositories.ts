@@ -1,5 +1,6 @@
 import type {
   BranchDTO,
+  CommitHistoryDTO,
   CreateRepositoryInput,
   ProjectContextDTO,
   UpdateRepositoryInput
@@ -49,6 +50,16 @@ export function useRepositoryInsight(
   return useQuery({
     queryKey: queryKeys.repositories.insight(id ?? ""),
     queryFn: () => repositoryService.getInsight(id as string),
+    enabled: Boolean(id)
+  });
+}
+
+export function useRepositoryCommits(
+  id: string | undefined
+): UseQueryResult<CommitHistoryDTO[], Error> {
+  return useQuery({
+    queryKey: queryKeys.repositories.commits(id ?? ""),
+    queryFn: () => repositoryService.listCommits(id as string),
     enabled: Boolean(id)
   });
 }

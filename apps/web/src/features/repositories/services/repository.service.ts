@@ -1,5 +1,6 @@
 import type {
   BranchDTO,
+  CommitHistoryDTO,
   CreateRepositoryInput,
   ProjectContextDTO,
   RepositoryDTO,
@@ -23,6 +24,10 @@ export const repositoryService = {
 
   getInsight(id: string): Promise<ProjectContextDTO> {
     return apiClient.get<ProjectContextDTO>(`/repositories/${id}/insight`);
+  },
+
+  listCommits(id: string): Promise<CommitHistoryDTO[]> {
+    return apiClient.get<CommitHistoryDTO[]>(`/repositories/${id}/commits`);
   },
 
   refreshInsight(id: string): Promise<ProjectContextDTO> {
