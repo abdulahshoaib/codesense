@@ -8,6 +8,9 @@ export const queryKeys = {
   llm: {
     models: () => ["llm", "models"] as const
   },
+  mcp: {
+    access: () => ["mcp", "access"] as const
+  },
   repositories: {
     all: () => ["repositories"] as const,
     list: () => ["repositories", "list"] as const,
