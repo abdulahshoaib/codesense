@@ -21,6 +21,7 @@ import {
   useUpdateLlmPreference
 } from "@/features/settings/hooks/use-llm";
 import { getErrorMessage } from "@/lib/api-client";
+import { safeHref } from "@/lib/safe-href";
 import { useAuthStore } from "@/stores/auth.store";
 
 const PROVIDERS: Array<{
@@ -279,7 +280,7 @@ export function AiModelSection(): React.ReactElement {
         <p className="text-xs text-muted-foreground">
           Summaries send repository metadata to the selected provider.{" "}
           <a
-            href={privacyUrl}
+            href={safeHref(privacyUrl)}
             target="_blank"
             rel="noreferrer"
             className="underline"

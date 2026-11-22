@@ -24,6 +24,7 @@ import {
 } from "@/features/repositories/hooks/use-repositories";
 import { getErrorMessage } from "@/lib/api-client";
 import { formatDate, truncateHash } from "@/lib/format";
+import { safeHref } from "@/lib/safe-href";
 
 interface RepositoryInsightPanelProps {
   repositoryId: string;
@@ -105,7 +106,7 @@ function InsightLink({
 }): React.ReactElement {
   return (
     <a
-      href={href}
+      href={safeHref(href)}
       target="_blank"
       rel="noreferrer"
       className="text-sm font-medium text-primary hover:underline"

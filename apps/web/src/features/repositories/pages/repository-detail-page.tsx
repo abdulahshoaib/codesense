@@ -39,6 +39,7 @@ import { StartScanDialog } from "@/features/scans/components/start-scan-dialog";
 import { useRepositoryScans } from "@/features/scans/hooks/use-scans";
 import { getErrorMessage } from "@/lib/api-client";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { safeHref } from "@/lib/safe-href";
 
 type DetailSection = "context" | RepositoryActivitySection;
 
@@ -67,7 +68,7 @@ function RepositoryDetails({
     <dl className="grid gap-3 sm:grid-cols-2">
       <DetailItem label="Repository URL">
         <a
-          href={repository.url}
+          href={safeHref(repository.url)}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-1 text-primary hover:underline"

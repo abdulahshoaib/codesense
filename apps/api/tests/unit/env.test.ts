@@ -84,4 +84,20 @@ describe("environment validation", () => {
 
     expect(warn).not.toHaveBeenCalled();
   });
+
+  it("rejects wildcard CORS_ORIGIN in production", () => {
+    expect(() =>
+      parseEnv({ ...baseEnv, NODE_ENV: "production", CORS_ORIGIN: "*" })
+    ).toThrow(/CORS_ORIGIN cannot be \* in production/);
+  });
+
+  it("allows wildcard CORS_ORIGIN outside production", () => {
+    const env = parseEnv({
+      ...baseEnv,
+      NODE_ENV: "development",
+      CORS_ORIGIN: "*"
+    });
+
+    expect(env.CORS_ORIGIN).toBe("*");
+  });
 });

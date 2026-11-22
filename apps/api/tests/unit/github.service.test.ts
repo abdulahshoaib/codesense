@@ -31,6 +31,12 @@ describe("github service", () => {
     expect(url).toBe("https://x-access-token:token@github.com/acme/codesense.git");
   });
 
+  it("rejects non-GitHub clone URLs", () => {
+    expect(() =>
+      buildGithubCloneUrl("https://evil.example/acme/codesense", "token")
+    ).toThrow(/GitHub HTTPS URL/);
+  });
+
   it("reads owner and repo from a GitHub URL", () => {
     expect(githubFullNameFromUrl("https://github.com/acme/codesense")).toBe(
       "acme/codesense"

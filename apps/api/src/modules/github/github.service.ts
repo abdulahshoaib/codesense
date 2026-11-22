@@ -124,6 +124,14 @@ export function buildGithubCloneUrl(
 ): string {
   const normalized = repositoryUrl.replace(/\.git$/, "").replace(/\/$/, "");
   const url = new URL(normalized);
+
+  if (url.protocol !== "https:" || url.hostname !== "github.com") {
+    throw ApiError.badRequest(
+      "Repository URL must be a GitHub HTTPS URL",
+      "INVALID_REPOSITORY_URL"
+    );
+  }
+
   url.username = "x-access-token";
   url.password = accessToken;
 

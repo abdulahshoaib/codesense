@@ -6,7 +6,12 @@ export const repositoryProviderSchema = z.enum(["github", "local"]);
 
 export const repositoryUrlSchema = z
   .url("Repository URL must be a valid URL")
-  .max(2048);
+  .max(2048)
+  .refine(
+    (value) =>
+      /^https:\/\/github\.com\/[^/]+\/[^/]+(?:\.git)?\/?$/.test(value),
+    "Repository URL must be a GitHub HTTPS URL"
+  );
 
 export const createRepositorySchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),

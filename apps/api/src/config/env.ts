@@ -30,7 +30,13 @@ export const envSchema = z.object({
   GITHUB_WEBHOOK_SECRET: z.string().default(""),
   WEBHOOK_BASE_URL: z.string().default(""),
   MCP_PUBLIC_URL: z.string().default("")
-});
+}).refine(
+  (value) => !(value.NODE_ENV === "production" && value.CORS_ORIGIN === "*"),
+  {
+    message: "CORS_ORIGIN cannot be * in production",
+    path: ["CORS_ORIGIN"]
+  }
+);
 
 export type Env = z.infer<typeof envSchema>;
 

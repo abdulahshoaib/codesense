@@ -18,6 +18,20 @@ export interface GitCommitSummary {
   committedAt: string;
 }
 
+function assertHttpsGithubRemote(url: string): void {
+  let parsed: URL;
+
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error("Repository URL must be a GitHub HTTPS URL");
+  }
+
+  if (parsed.protocol !== "https:" || parsed.hostname !== "github.com") {
+    throw new Error("Repository URL must be a GitHub HTTPS URL");
+  }
+}
+
 async function readCheckout(targetDir: string): Promise<GitCheckout> {
   const head = await execFileAsync("git", [
     "-C",
@@ -46,6 +60,7 @@ export async function cloneBranch(
   targetDir: string,
   depth = 1
 ): Promise<GitCheckout> {
+  assertHttpsGithubRemote(url);
   await execFileAsync("git", [
     "clone",
     "--depth",
@@ -65,6 +80,7 @@ export async function cloneCommit(
   commit: string,
   targetDir: string
 ): Promise<GitCheckout> {
+  assertHttpsGithubRemote(url);
   await mkdir(targetDir, { recursive: true });
   await execFileAsync("git", ["init", "--quiet", targetDir]);
   await execFileAsync("git", [
@@ -121,6 +137,7 @@ export async function listRecentCommitsFromRemote(
   branch: string,
   limit: number
 ): Promise<GitCommitSummary[]> {
+  assertHttpsGithubRemote(url);
   const workDir = await mkdtemp(join(tmpdir(), "codesense-gitlog-"));
 
   try {
@@ -146,6 +163,7 @@ export async function listRecentCommitsFromRemote(
 export async function listRemoteBranches(
   url: string
 ): Promise<Array<{ name: string; commitHash: string }>> {
+  assertHttpsGithubRemote(url);
   const { stdout } = await execFileAsync("git", ["ls-remote", "--heads", url]);
 
   return stdout
