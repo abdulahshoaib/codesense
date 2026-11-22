@@ -14,6 +14,27 @@ const githubSchema = new Schema(
   { _id: false }
 );
 
+const llmKeysSchema = new Schema(
+  {
+    groq: { type: String, select: false },
+    openrouter: { type: String, select: false }
+  },
+  { _id: false }
+);
+
+const llmPreferenceSchema = new Schema(
+  {
+    provider: {
+      type: String,
+      enum: ["groq", "openrouter"],
+      required: true
+    },
+    modelId: { type: String, required: true, trim: true },
+    fallbackEnabled: { type: Boolean, required: true, default: false }
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema<UserDocument>(
   {
     name: {
@@ -37,6 +58,16 @@ const userSchema = new Schema<UserDocument>(
     },
     github: {
       type: githubSchema,
+      required: false,
+      default: undefined
+    },
+    llmKeys: {
+      type: llmKeysSchema,
+      required: false,
+      default: undefined
+    },
+    llmPreference: {
+      type: llmPreferenceSchema,
       required: false,
       default: undefined
     }

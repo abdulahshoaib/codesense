@@ -1,4 +1,4 @@
-import type { PublicUser } from "@codesense/shared";
+import type { LlmProvider, PublicUser } from "@codesense/shared";
 import type { Types } from "mongoose";
 
 export interface GithubProfileDocument {
@@ -10,12 +10,25 @@ export interface GithubProfileDocument {
   connectedAt: Date;
 }
 
+export interface LlmKeysDocument {
+  groq?: string;
+  openrouter?: string;
+}
+
+export interface LlmPreferenceDocument {
+  provider: LlmProvider;
+  modelId: string;
+  fallbackEnabled: boolean;
+}
+
 export interface UserDocument {
   _id: Types.ObjectId;
   name: string;
   email: string;
   passwordHash: string;
   github?: GithubProfileDocument;
+  llmKeys?: LlmKeysDocument;
+  llmPreference?: LlmPreferenceDocument;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,6 +61,19 @@ export function toPublicUser(user: UserDocument): PublicUser {
           avatarUrl: user.github.avatarUrl
         }
       : null,
+    llmKeys: {
+      groq: Boolean(user.llmKeys?.groq),
+      openrouter: Boolean(user.llmKeys?.openrouter)
+    },
+    ...(user.llmPreference
+      ? {
+          llmPreference: {
+            provider: user.llmPreference.provider,
+            modelId: user.llmPreference.modelId,
+            fallbackEnabled: user.llmPreference.fallbackEnabled
+          }
+        }
+      : {}),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString()
   };

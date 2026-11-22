@@ -24,9 +24,9 @@ export const envSchema = z.object({
     .default("http://localhost:5000/api/v1/auth/github/callback"),
   GITHUB_API_URL: z.string().default("https://api.github.com"),
   WEB_APP_URL: z.string().default("http://localhost:5173"),
-  AI_API_KEY: z.string().default(""),
-  AI_BASE_URL: z.string().default("https://api.openai.com/v1"),
-  AI_MODEL: z.string().default("gpt-4o-mini")
+  GROQ_API_KEY: z.string().default(""),
+  OPENROUTER_API_KEY: z.string().default(""),
+  LLM_FALLBACK_ORDER: z.string().default("groq,openrouter")
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -44,4 +44,18 @@ export function parseEnv(source: NodeJS.ProcessEnv = process.env): Env {
   return result.data;
 }
 
+export function warnDeprecatedAiEnv(
+  source: NodeJS.ProcessEnv = process.env
+): void {
+  const legacyKeys = ["AI_API_KEY", "AI_BASE_URL", "AI_MODEL"] as const;
+
+  if (legacyKeys.some((key) => source[key] !== undefined)) {
+    console.warn(
+      "AI_API_KEY, AI_BASE_URL and AI_MODEL are deprecated and ignored. " +
+        "Use GROQ_API_KEY and OPENROUTER_API_KEY instead."
+    );
+  }
+}
+
 export const env: Env = parseEnv();
+warnDeprecatedAiEnv();

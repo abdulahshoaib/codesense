@@ -243,7 +243,9 @@ export async function disconnect(userId: string): Promise<PublicUser> {
     userId,
     { $unset: { github: 1 } },
     { new: true }
-  ).exec();
+  )
+    .select("+llmKeys.groq +llmKeys.openrouter")
+    .exec();
 
   if (!user) {
     throw ApiError.notFound("User not found", "USER_NOT_FOUND");

@@ -16,21 +16,25 @@ async function createUser(input: CreateUserInput): Promise<UserDocument> {
   });
 }
 
+const LLM_KEYS_SELECT = "+llmKeys.groq +llmKeys.openrouter";
+
 async function findByEmail(
   email: string,
   options: { withPassword?: boolean } = {}
 ): Promise<UserDocument | null> {
   const query = User.findOne({ email: email.toLowerCase().trim() });
 
-  if (options.withPassword) {
-    query.select("+passwordHash");
-  }
+  query.select(
+    options.withPassword
+      ? `+passwordHash ${LLM_KEYS_SELECT}`
+      : LLM_KEYS_SELECT
+  );
 
   return query.exec();
 }
 
 async function findById(id: string): Promise<UserDocument | null> {
-  return User.findById(id).exec();
+  return User.findById(id).select(LLM_KEYS_SELECT).exec();
 }
 
 async function getById(id: string): Promise<PublicUser> {
@@ -62,7 +66,9 @@ async function updateProfile(
     id,
     { $set: input },
     { new: true, runValidators: true }
-  ).exec();
+  )
+    .select(LLM_KEYS_SELECT)
+    .exec();
 
   if (!user) {
     throw ApiError.notFound("User not found", "USER_NOT_FOUND");
