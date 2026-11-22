@@ -1,6 +1,7 @@
 export * from "./contracts/api.js";
 export * from "./contracts/github.js";
 export * from "./contracts/llm.js";
+export * from "./contracts/mcp.js";
 export * from "./contracts/repository.js";
 export * from "./contracts/repository-insight.js";
 export * from "./contracts/user.js";
@@ -11,3 +12,4 @@ export * from "./schemas/auth.js";
 export * from "./schemas/repository.js";
 export * from "./schemas/scan.js";
 export * from "./schemas/llm.js";
+export * from "./schemas/mcp.js";
