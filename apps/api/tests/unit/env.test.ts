@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { parseEnv } from "../../src/config/env.js";
+import { parseEnv, warnDeprecatedAiEnv } from "../../src/config/env.js";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const baseEnv: NodeJS.ProcessEnv = {
   NODE_ENV: "test",
@@ -53,5 +57,30 @@ describe("environment validation", () => {
     expect(() => parseEnv({ ...baseEnv, NODE_ENV: "staging" })).toThrow(
       /NODE_ENV/
     );
+  });
+
+  it("applies defaults for the LLM provider variables", () => {
+    const env = parseEnv(baseEnv);
+
+    expect(env.GROQ_API_KEY).toBe("");
+    expect(env.OPENROUTER_API_KEY).toBe("");
+    expect(env.LLM_FALLBACK_ORDER).toBe("groq,openrouter");
+  });
+
+  it("warns once when legacy AI_* variables are present", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    warnDeprecatedAiEnv({ AI_API_KEY: "legacy" });
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toContain("deprecated");
+  });
+
+  it("does not warn when legacy AI_* variables are absent", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    warnDeprecatedAiEnv({});
+
+    expect(warn).not.toHaveBeenCalled();
   });
 });

@@ -38,6 +38,37 @@ vi.mock("@/features/repositories/hooks/use-repositories", () => ({
   })
 }));
 
+vi.mock("@/features/settings/hooks/use-llm", () => ({
+  useLlmModels: () => ({
+    data: {
+      models: [
+        {
+          provider: "groq",
+          modelId: "openai/gpt-oss-120b",
+          label: "OpenAI GPT-OSS 120B",
+          free: true,
+          default: true
+        },
+        {
+          provider: "openrouter",
+          modelId: "openai/gpt-oss-120b:free",
+          label: "OpenAI GPT-OSS 120B (Free)",
+          free: true
+        }
+      ],
+      availableProviders: ["groq"],
+      preference: {
+        provider: "groq",
+        modelId: "openai/gpt-oss-120b",
+        fallbackEnabled: false
+      }
+    },
+    isLoading: false,
+    isError: false,
+    error: null
+  })
+}));
+
 const repository = {
   id: "507f1f77bcf86cd799439012",
   ownerId: "507f1f77bcf86cd799439011",
@@ -77,10 +108,29 @@ describe("StartScanDialog", () => {
     await vi.waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalled());
     expect(mocks.mutateAsync).toHaveBeenCalledWith({
       repositoryId: repository.id,
-      input: { branch: "develop" }
+      input: {
+        branch: "develop",
+        llm: { provider: "groq", modelId: "openai/gpt-oss-120b" }
+      }
     });
     expect(mocks.navigate).toHaveBeenCalledWith(
       "/scans/507f1f77bcf86cd799439014"
+    );
+  });
+
+  it("defaults the AI model select to the user preference", () => {
+    renderWithProviders(
+      <StartScanDialog
+        open
+        onClose={() => undefined}
+        repositories={[repository]}
+        fixedRepositoryId={repository.id}
+        defaultBranch="main"
+      />
+    );
+
+    expect(screen.getByLabelText(/AI model/i)).toHaveValue(
+      "groq:openai/gpt-oss-120b"
     );
   });
 });
