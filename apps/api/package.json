@@ -11,10 +11,12 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "mcp:stdio": "tsx src/mcp-stdio.ts"
   },
   "dependencies": {
     "@codesense/shared": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",

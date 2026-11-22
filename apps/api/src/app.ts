@@ -7,6 +7,7 @@ import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { notFound } from "./middleware/not-found.js";
+import { mountMcp } from "./mcp/http.js";
 import healthRoutes from "./routes/health.routes.js";
 import { apiRouter } from "./routes/index.js";
 
@@ -46,6 +47,7 @@ export function createApp(): Express {
 
   app.use("/health", healthRoutes);
   app.use("/api/v1", apiRouter);
+  mountMcp(app);
 
   app.use(notFound);
   app.use(errorHandler);

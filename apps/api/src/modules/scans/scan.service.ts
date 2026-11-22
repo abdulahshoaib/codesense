@@ -66,8 +66,42 @@ async function getScan(ownerId: string, scanId: string): Promise<ScanDTO> {
   return toScanDTO(scan);
 }
 
+async function getLatestScanForRepository(
+  ownerId: string,
+  repositoryId: string
+): Promise<ScanDTO | null> {
+  const scan = await Scan.findOne({
+    repositoryId: toObjectId(repositoryId),
+    ownerId: toObjectId(ownerId)
+  })
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return scan ? toScanDTO(scan) : null;
+}
+
+async function listLatestByRepository(
+  ownerId: string
+): Promise<Map<string, ScanDTO>> {
+  const scans = await Scan.find({ ownerId: toObjectId(ownerId) })
+    .sort({ createdAt: -1 })
+    .exec();
+  const latest = new Map<string, ScanDTO>();
+
+  for (const scan of scans) {
+    const key = scan.repositoryId.toString();
+    if (!latest.has(key)) {
+      latest.set(key, toScanDTO(scan));
+    }
+  }
+
+  return latest;
+}
+
 export const scanService = {
   createScan,
   listScansForRepository,
-  getScan
+  getScan,
+  getLatestScanForRepository,
+  listLatestByRepository
 };

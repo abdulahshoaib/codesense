@@ -1,5 +1,7 @@
 import { execFile } from "node:child_process";
-import { rm } from "node:fs/promises";
+import { mkdir, mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -9,22 +11,14 @@ export interface GitCheckout {
   committedAt: string;
 }
 
-export async function cloneBranch(
-  url: string,
-  branch: string,
-  targetDir: string
-): Promise<GitCheckout> {
-  await execFileAsync("git", [
-    "clone",
-    "--depth",
-    "1",
-    "--branch",
-    branch,
-    "--single-branch",
-    url,
-    targetDir
-  ]);
+export interface GitCommitSummary {
+  sha: string;
+  message: string;
+  author: string | null;
+  committedAt: string;
+}
 
+async function readCheckout(targetDir: string): Promise<GitCheckout> {
   const head = await execFileAsync("git", [
     "-C",
     targetDir,
@@ -44,6 +38,109 @@ export async function cloneBranch(
     commitHash: head.stdout.trim(),
     committedAt: date.stdout.trim()
   };
+}
+
+export async function cloneBranch(
+  url: string,
+  branch: string,
+  targetDir: string,
+  depth = 1
+): Promise<GitCheckout> {
+  await execFileAsync("git", [
+    "clone",
+    "--depth",
+    String(Math.max(1, depth)),
+    "--branch",
+    branch,
+    "--single-branch",
+    url,
+    targetDir
+  ]);
+
+  return readCheckout(targetDir);
+}
+
+export async function cloneCommit(
+  url: string,
+  commit: string,
+  targetDir: string
+): Promise<GitCheckout> {
+  await mkdir(targetDir, { recursive: true });
+  await execFileAsync("git", ["init", "--quiet", targetDir]);
+  await execFileAsync("git", [
+    "-C",
+    targetDir,
+    "fetch",
+    "--depth",
+    "1",
+    "--quiet",
+    url,
+    commit
+  ]);
+  await execFileAsync("git", [
+    "-C",
+    targetDir,
+    "checkout",
+    "--quiet",
+    "--detach",
+    "FETCH_HEAD"
+  ]);
+
+  return readCheckout(targetDir);
+}
+
+export async function listCommitsFromRepo(
+  repoDir: string,
+  limit: number
+): Promise<GitCommitSummary[]> {
+  const { stdout } = await execFileAsync("git", [
+    "-C",
+    repoDir,
+    "log",
+    "-n",
+    String(Math.max(1, limit)),
+    "--format=%H%x1f%s%x1f%an%x1f%cI"
+  ]);
+
+  return stdout
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [sha, message, author, committedAt] = line.split("\x1f");
+      return {
+        sha: sha ?? "",
+        message: message ?? "",
+        author: author && author.length > 0 ? author : null,
+        committedAt: committedAt ?? ""
+      };
+    });
+}
+
+export async function listRecentCommitsFromRemote(
+  url: string,
+  branch: string,
+  limit: number
+): Promise<GitCommitSummary[]> {
+  const workDir = await mkdtemp(join(tmpdir(), "codesense-gitlog-"));
+
+  try {
+    await execFileAsync("git", [
+      "clone",
+      "--depth",
+      String(Math.max(1, limit)),
+      "--branch",
+      branch,
+      "--single-branch",
+      "--no-checkout",
+      "--quiet",
+      url,
+      workDir
+    ]);
+
+    return listCommitsFromRepo(workDir, limit);
+  } finally {
+    await rm(workDir, { recursive: true, force: true });
+  }
 }
 
 export async function listRemoteBranches(
